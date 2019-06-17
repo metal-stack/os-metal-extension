@@ -3,6 +3,7 @@ package pkg
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"github.com/coreos/container-linux-config-transpiler/config/types"
 	oscommon "github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
@@ -59,6 +60,10 @@ func (a *actuator) generateIgnitionConfig(ctx context.Context, config *extension
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)
 	}
 
-	outCfg, _ := types.Convert(cfg, "", nil)
+	outCfg, report := types.Convert(cfg, "", nil)
+    if report.IsFatal() {
+    	return nil, fmt.Errorf("could not transpile ignition config: %s", report.String())
+	}
+
     return json.Marshal(outCfg)
 }

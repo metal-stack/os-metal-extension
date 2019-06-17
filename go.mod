@@ -7,9 +7,11 @@ require (
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
 	github.com/Masterminds/sprig v2.18.0+incompatible // indirect
+	github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083 // indirect
+	github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd // indirect
 	github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
-	github.com/coreos/container-linux-config-transpiler v0.9.0 // indirect
+	github.com/coreos/container-linux-config-transpiler v0.9.0
 	github.com/coreos/go-semver v0.2.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190617083831-1652836e9bdc // indirect
 	github.com/coreos/ignition v0.32.0
@@ -65,6 +67,7 @@ require (
 	go.uber.org/atomic v1.4.0 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.10.0 // indirect
+	go4.org v0.0.0-20190313082347-94abd6928b1d // indirect
 	golang.org/x/crypto v0.0.0-20190422162423-af44ce270edf // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45 // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
@@ -92,6 +95,7 @@ require (
 )
 
 replace (
+	github.com/ajeddeloh/yaml => github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd // indirect
 	github.com/gardener/gardener => github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0
 	github.com/gardener/gardener-extensions => github.com/gardener/gardener-extensions v0.0.0-20190613151026-de024fbf5602
 	github.com/gardener/machine-controller-manager => github.com/gardener/machine-controller-manager v0.0.0-20190606071036-119056ee3fdd // indirect

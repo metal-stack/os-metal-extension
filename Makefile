@@ -21,7 +21,7 @@ VERSION                     := $(shell bash -c 'source $(HACK_DIR)/common.sh && 
 LD_FLAGS                    := "-X 'github.com/metal-pod/v.Version=$(VERSION)' \
 								-X 'github.com/metal-pod/v.Revision=$(GITVERSION)' \
 								-X 'github.com/metal-pod/v.GitSHA1=$(SHA)' \
-								-X 'github.com/metal-pod/v.BuildDate=$(BUILDDATE)'" \
+								-X 'github.com/metal-pod/v.BuildDate=$(BUILDDATE)'"
 VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
@@ -80,5 +80,5 @@ revendor:
 start-os-metal:
 	@LEADER_ELECTION_NAMESPACE=garden go run \
 		-ldflags $(LD_FLAGS) \
-		./cmd/os-metal \
+		./cmd \
 		--leader-election=$(LEADER_ELECTION)

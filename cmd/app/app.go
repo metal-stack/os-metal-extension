@@ -16,11 +16,12 @@ package app
 
 import (
 	"context"
-	"github.com/metal-pod/os-metal-extension/pkg"
+	"os"
+
 	"github.com/gardener/gardener-extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener-extensions/pkg/controller/cmd"
+	coreos "github.com/metal-pod/os-metal-extension/pkg"
 	"github.com/spf13/cobra"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -44,7 +45,7 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use: "os-coreos-alicloud-controller-manager",
+		Use: "os-metal-controller-manager",
 
 		Run: func(cmd *cobra.Command, args []string) {
 			if err := aggOption.Complete(); err != nil {

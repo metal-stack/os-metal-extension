@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coreos
+package pkg
 
 import (
 	"github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig"
@@ -21,8 +21,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-// Type is the type of operating system configs the CoreOS Alicloud controller monitors.
-const Type = "coreos-alicloud"
+// Type is the type of operating system configs the os metal controller monitors.
+const Type = "os-metal"
 
 var (
 	// DefaultAddOptions are the default controller.Options for AddToManager.

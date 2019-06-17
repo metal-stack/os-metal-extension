@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package coreos
+package pkg
 
 import (
 	"context"
@@ -37,7 +37,7 @@ type actuator struct {
 
 // NewActuator creates a new actuator with the given logger.
 func NewActuator() operatingsystemconfig.Actuator {
-	return &actuator{logger: log.Log.WithName("coreos-alicloud-operatingsystemconfig-actuator")}
+	return &actuator{logger: log.Log.WithName("os-metal-operatingsystemconfig-actuator")}
 }
 
 func (a *actuator) InjectScheme(scheme *runtime.Scheme) error {

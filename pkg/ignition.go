@@ -52,6 +52,7 @@ func (a *actuator) generateIgnitionConfig(ctx context.Context, config *extension
 
 		ignitionFile := types.File{
 			Path: f.Path,
+			Filesystem: "root",
 			Mode: mode,
 			Contents: types.FileContents{
 				Inline: string(content),

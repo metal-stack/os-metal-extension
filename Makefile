@@ -26,6 +26,9 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
+export CGO_ENABLED := 0
+export GO111MODULE := on
+
 ### Build commands
 
 .PHONY: format
@@ -35,6 +38,7 @@ format:
 .PHONY: clean
 clean:
 	@./hack/clean.sh
+	rm os-metal
 
 .PHONY: generate
 generate:
@@ -55,14 +59,9 @@ verify: check generate test format
 install:
 	@./hack/install.sh
 
-.PHONY: clean
-clean:
-	rm os-metal
-
 .PHONY: all
-all:
-	CGO_ENABLED=0 \
-	go build -tags netgo -o os-metal cmd/main.go
+all: generate
+	go build -mod vendor -tags netgo -o os-metal cmd/main.go
 
 .PHONY: docker-image
 docker-image:

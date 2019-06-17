@@ -2,8 +2,8 @@
 FROM golang:1.12.6 AS builder
 WORKDIR /work
 COPY . .
-RUN go mod download
-
+# RUN go mod download
+RUN hack/install-requirements.sh
 RUN make VERIFY=$VERIFY all
 
 #############      base                                     #############

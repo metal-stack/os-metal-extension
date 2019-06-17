@@ -3,6 +3,7 @@ module github.com/metal-pod/os-metal-extension
 go 1.12
 
 require (
+	github.com/Azure/go-ansiterm v0.0.0-20170929234023-d6e3b3328b78 // indirect
 	github.com/MakeNowJust/heredoc v0.0.0-20171113091838-e9091a26100e // indirect
 	github.com/Masterminds/goutils v1.1.0 // indirect
 	github.com/Masterminds/semver v1.4.2 // indirect
@@ -14,7 +15,7 @@ require (
 	github.com/coreos/container-linux-config-transpiler v0.9.0
 	github.com/coreos/go-semver v0.2.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190617083831-1652836e9bdc // indirect
-	github.com/coreos/ignition v0.32.0
+	github.com/coreos/ignition v0.32.0 // indirect
 	github.com/cyphar/filepath-securejoin v0.2.2 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/docker/distribution v2.7.1+incompatible // indirect
@@ -51,6 +52,7 @@ require (
 	github.com/konsorten/go-windows-terminal-sequences v1.0.2 // indirect
 	github.com/miekg/dns v1.1.14 // indirect
 	github.com/mitchellh/go-wordwrap v1.0.0 // indirect
+	github.com/moby/moby v1.13.1 // indirect
 	github.com/onsi/ginkgo v0.0.0-20170829012221-11459a886d9c
 	github.com/onsi/gomega v0.0.0-20170829124025-dcabb60a477c
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
@@ -76,10 +78,10 @@ require (
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1 // indirect
 	gopkg.in/yaml.v2 v2.2.2 // indirect
-	k8s.io/api v0.0.0-20190614205929-e4e27c96b39a
+	k8s.io/api v0.0.0-20190614205929-e4e27c96b39a // indirect
 	k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236 // indirect
 	k8s.io/apimachinery v0.0.0-20190612125636-6a5db36e93ad
-	k8s.io/apiserver v0.0.0-20190228174905-79427f02047f
+	k8s.io/apiserver v0.0.0-20190228174905-79427f02047f // indirect
 	k8s.io/cli-runtime v0.0.0-20190228180923-a9e421a79326 // indirect
 	k8s.io/client-go v10.0.0+incompatible // indirect
 	k8s.io/helm v2.13.1+incompatible // indirect
@@ -95,6 +97,7 @@ require (
 )
 
 replace (
+	// github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/ajeddeloh/yaml => github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd // indirect
 	github.com/gardener/gardener => github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0
 	github.com/gardener/gardener-extensions => github.com/gardener/gardener-extensions v0.0.0-20190613151026-de024fbf5602

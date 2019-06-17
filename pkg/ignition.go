@@ -12,10 +12,20 @@ func (a *actuator) generateIgnitionConfig(ctx context.Context, config *extension
 	cfg := types.Config{}
 	cfg.Systemd = types.Systemd{}
 	for _, u := range config.Spec.Units {
+		var contents string
+		if u.Content != nil {
+			contents = *u.Content
+		}
+
+		var enable bool
+		if u.Enable != nil {
+			enable = *u.Enable
+		}
+
 		unit := types.SystemdUnit{
-			Contents: *u.Content,
+			Contents: contents,
 			Name:     u.Name,
-			Enable:   *u.Enable,
+			Enable:   enable,
 		}
 		for _, dr := range u.DropIns {
 			unit.Dropins = append(unit.Dropins, types.SystemdUnitDropIn{

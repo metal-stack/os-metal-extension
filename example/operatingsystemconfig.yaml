@@ -6,6 +6,7 @@ metadata:
   namespace: default
 spec:
   type: os-metal
+  purpose: provision
   units:
   - name: docker.service
     dropIns:
@@ -31,9 +32,9 @@ spec:
     permissions: 0644
     encoding: b64
     content:
-      secretRef:
-        name: default-token-5dtjz
-        dataKey: token
+      inline:
+        data: |
+          Hello World
   - path: /etc/sysctl.d/99-k8s-general.conf
     permissions: 0644
     content:

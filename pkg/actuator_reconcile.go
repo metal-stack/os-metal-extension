@@ -18,10 +18,10 @@ import (
 	"context"
 	"fmt"
 	oscommon "github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
-
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/metal-pod/os-metal-extension/pkg/internal"
 )
+
 
 func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {
 	var (
@@ -29,7 +29,7 @@ func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 		err error
 	)
 	if config.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
-        data, err = a.generateIgnitionConfig(ctx, config)
+        data, err = IgnitionFromOperatingSystemConfig(ctx, a.client, config)
 	} else {
 		data, err = a.cloudConfigFromOperatingSystemConfig(ctx, config)
 	}

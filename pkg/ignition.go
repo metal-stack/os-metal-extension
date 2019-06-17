@@ -7,9 +7,10 @@ import (
 	"github.com/coreos/container-linux-config-transpiler/config/types"
 	oscommon "github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-func (a *actuator) generateIgnitionConfig(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
+func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
 	cfg := types.Config{}
 	cfg.Systemd = types.Systemd{}
 	for _, u := range config.Spec.Units {
@@ -39,7 +40,7 @@ func (a *actuator) generateIgnitionConfig(ctx context.Context, config *extension
 
 	cfg.Storage = types.Storage{}
 	for _, f := range config.Spec.Files {
-        content, err := oscommon.DataForFileContent(ctx, a.client, config.Namespace, &f.Content)
+        content, err := oscommon.DataForFileContent(ctx, c, config.Namespace, &f.Content)
 		if err != nil {
 			return nil, err
 		}

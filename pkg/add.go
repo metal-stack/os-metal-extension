@@ -22,7 +22,7 @@ import (
 )
 
 // Type is the type of operating system configs the os metal controller monitors.
-const Type = "os-metal"
+const Type = "metal"
 
 var (
 	// DefaultAddOptions are the default controller.Options for AddToManager.

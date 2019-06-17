@@ -44,8 +44,8 @@ function header_text {
   echo "$header$*$reset"
 }
 
-SOURCE_TREES=(./pkg/... ./controllers/...)
-CMD_TREES=(./controllers/...)
+SOURCE_TREES=(./pkg/... ./charts/...)
+CMD_TREES=(./cmd/...)
 
 VERSIONFILE_VERSION="$(cat "$DIRNAME/../VERSION")"
 VERSION="${VERSION:-${EFFECTIVE_VERSION:-"$VERSIONFILE_VERSION"}}"

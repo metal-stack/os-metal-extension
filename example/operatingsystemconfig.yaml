@@ -5,7 +5,7 @@ metadata:
   name: pool-01-original
   namespace: default
 spec:
-  type: os-metal
+  type: metal
   purpose: provision
   units:
   - name: docker.service

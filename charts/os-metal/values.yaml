@@ -1,5 +1,5 @@
 image:
-  repository: eu.gcr.io/gardener-project/gardener/gardener-extension-hyper
+  repository: metalpod/os-metal
   tag: latest
   pullPolicy: IfNotPresent
 

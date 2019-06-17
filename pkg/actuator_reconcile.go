@@ -17,19 +17,22 @@ package pkg
 import (
 	"context"
 	"fmt"
-
-	"github.com/metal-pod/os-metal-extension/pkg/internal"
-	"github.com/metal-pod/os-metal-extension/pkg/internal/cloudinit"
+	oscommon "github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-
-	corev1 "k8s.io/api/core/v1"
-
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/metal-pod/os-metal-extension/pkg/internal"
 )
 
 func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {
-	cloudConfig, err := a.cloudConfigFromOperatingSystemConfig(ctx, config)
+	var (
+		data []byte
+		err error
+	)
+	if config.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
+        data, err = a.generateIgnitionConfig(ctx, config)
+	} else {
+		data, err = a.cloudConfigFromOperatingSystemConfig(ctx, config)
+	}
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not generate cloud config: %v", err)
 	}
@@ -41,14 +44,14 @@ func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 		command = &cmd
 	}
 
-	return []byte(cloudConfig), command, operatingSystemConfigUnitNames(config), nil
+	return data, command, operatingSystemConfigUnitNames(config), nil
 }
 
 // config is brought from Gardener
 func (a *actuator) cloudConfigFromOperatingSystemConfig(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
 	files := make([]*internal.File, 0, len(config.Spec.Files))
 	for _, file := range config.Spec.Files {
-		data, err := a.dataForFileContent(ctx, config.Namespace, &file.Content)
+		data, err := oscommon.DataForFileContent(ctx, a.client, config.Namespace, &file.Content)
 		if err != nil {
 			return nil, err
 		}
@@ -85,22 +88,6 @@ func (a *actuator) cloudConfigFromOperatingSystemConfig(ctx context.Context, con
 			Files:     files,
 			Units:     units,
 		})
-}
-
-func (a *actuator) dataForFileContent(ctx context.Context, namespace string, content *extensionsv1alpha1.FileContent) ([]byte, error) {
-	if inline := content.Inline; inline != nil {
-		if len(inline.Encoding) == 0 {
-			return []byte(inline.Data), nil
-		}
-		return cloudinit.Decode(inline.Encoding, []byte(inline.Data))
-	}
-
-	key := client.ObjectKey{Namespace: namespace, Name: content.SecretRef.Name}
-	secret := &corev1.Secret{}
-	if err := a.client.Get(ctx, key, secret); err != nil {
-		return nil, err
-	}
-	return secret.Data[content.SecretRef.DataKey], nil
 }
 
 func operatingSystemConfigUnitNames(config *extensionsv1alpha1.OperatingSystemConfig) []string {

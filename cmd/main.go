@@ -15,9 +15,9 @@
 package main
 
 import (
-	"github.com/metal-pod/os-metal-extension/cmd/app"
 	"github.com/gardener/gardener-extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener-extensions/pkg/controller/cmd"
+	"github.com/metal-pod/os-metal-extension/cmd/app"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 

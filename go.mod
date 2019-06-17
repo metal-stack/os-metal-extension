@@ -9,6 +9,7 @@ require (
 	github.com/Masterminds/sprig v2.18.0+incompatible // indirect
 	github.com/appscode/jsonpatch v0.0.0-20190108182946-7c0e3b262f30 // indirect
 	github.com/chai2010/gettext-go v0.0.0-20170215093142-bf70f2a70fb1 // indirect
+	github.com/coreos/container-linux-config-transpiler v0.9.0 // indirect
 	github.com/coreos/go-semver v0.2.0 // indirect
 	github.com/coreos/go-systemd v0.0.0-20190617083831-1652836e9bdc // indirect
 	github.com/coreos/ignition v0.32.0

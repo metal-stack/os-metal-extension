@@ -22,14 +22,13 @@ import (
 	"github.com/metal-pod/os-metal-extension/pkg/internal"
 )
 
-
 func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {
 	var (
 		data []byte
-		err error
+		err  error
 	)
 	if config.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
-        data, err = IgnitionFromOperatingSystemConfig(ctx, a.client, config)
+		data, err = IgnitionFromOperatingSystemConfig(ctx, a.client, config)
 	} else {
 		data, err = a.cloudConfigFromOperatingSystemConfig(ctx, config)
 	}

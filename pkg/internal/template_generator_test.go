@@ -15,8 +15,8 @@
 package internal_test
 
 import (
-	. "github.com/metal-pod/os-metal-extension/pkg/internal"
 	"github.com/gobuffalo/packr"
+	. "github.com/metal-pod/os-metal-extension/pkg/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

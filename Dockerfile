@@ -1,34 +1,15 @@
 #############      builder-base                             #############
-FROM golang:1.12.4 AS builder-base
-
-COPY ./hack/install-requirements.sh /install-requirements.sh
-COPY ./tools /tools
-
-RUN /install-requirements.sh
-
-#############      builder                                  #############
-FROM builder-base AS builder
-
-ARG VERIFY=true
-
-WORKDIR /go/src/github.com/gardener/gardener-extensions
+FROM golang:1.12.6 AS builder
+WORKDIR /work
 COPY . .
+RUN go mod download
 
 RUN make VERIFY=$VERIFY all
 
 #############      base                                     #############
-FROM alpine:3.8 AS base
-
-RUN apk add --update bash curl
-
+FROM alpine:3.9 AS base
 WORKDIR /
-
-#############      gardener-extension-hyper                 #############
-FROM base AS gardener-extension-hyper
-
 COPY charts /charts
 
-# FIXME
-COPY --from=builder /go/bin/gardener-extension-hyper /gardener-extension-hyper
-
-ENTRYPOINT ["/gardener-extension-hyper"]
+COPY --from=builder /work/os-metal /os-metal
+CMD ["/os-metal"]

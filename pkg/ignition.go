@@ -40,21 +40,21 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 
 	cfg.Storage = types.Storage{}
 	for _, f := range config.Spec.Files {
-        content, err := oscommon.DataForFileContent(ctx, c, config.Namespace, &f.Content)
+		content, err := oscommon.DataForFileContent(ctx, c, config.Namespace, &f.Content)
 		if err != nil {
 			return nil, err
 		}
 
-        var mode *int
-        if f.Permissions != nil {
-        	m := int(*f.Permissions)
-        	mode = &m
+		var mode *int
+		if f.Permissions != nil {
+			m := int(*f.Permissions)
+			mode = &m
 		}
 
 		ignitionFile := types.File{
-			Path: f.Path,
+			Path:       f.Path,
 			Filesystem: "root",
-			Mode: mode,
+			Mode:       mode,
 			Contents: types.FileContents{
 				Inline: string(content),
 			},
@@ -63,9 +63,9 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 	}
 
 	outCfg, report := types.Convert(cfg, "", nil)
-    if report.IsFatal() {
-    	return nil, fmt.Errorf("could not transpile ignition config: %s", report.String())
+	if report.IsFatal() {
+		return nil, fmt.Errorf("could not transpile ignition config: %s", report.String())
 	}
 
-    return json.Marshal(outCfg)
+	return json.Marshal(outCfg)
 }

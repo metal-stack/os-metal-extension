@@ -55,20 +55,18 @@ verify: check generate test format
 install:
 	@./hack/install.sh
 
+.PHONY: clean
+clean:
+	rm os-metal
+
 .PHONY: all
-ifeq ($(VERIFY),true)
-all: verify generate install
-else
-all: generate install
-endif
+all:
+	CGO_ENABLED=0 \
+	go build -tags netgo -o os-metal cmd/main.go
 
-
-.PHONY: docker-image-hyper
-docker-image-hyper:
-	@docker build --build-arg VERIFY=$(VERIFY) -t $(IMAGE_PREFIX)/gardener-extension-hyper:$(VERSION) -t $(IMAGE_PREFIX)/gardener-extension-hyper:latest -f Dockerfile --target gardener-extension-hyper .
-
-.PHONY: docker-images
-docker-images: docker-image-hyper
+.PHONY: docker-image
+docker-image:
+	@docker build --build-arg VERIFY=$(VERIFY) -t metalpod/os-metal:$(VERSION) -t metalpod/os-metal:latest -f Dockerfile .
 
 ### Debug / Development commands
 

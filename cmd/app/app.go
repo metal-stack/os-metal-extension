@@ -20,15 +20,15 @@ import (
 
 	"github.com/gardener/gardener-extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener-extensions/pkg/controller/cmd"
-	coreos "github.com/metal-pod/os-metal-extension/pkg"
+	"github.com/metal-pod/os-metal-extension/pkg"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-// Name is the name of the CoreOS Alicloud controller.
-const Name = "os-coreos-alicloud"
+// Name is the name of the OS Metal controller.
+const Name = "os-metal"
 
-// NewControllerCommand creates a new command for running a CoreOS Alicloud controller.
+// NewControllerCommand creates a new command for running a OS Metal controller.
 func NewControllerCommand(ctx context.Context) *cobra.Command {
 	var (
 		restOpts = &controllercmd.RESTOptions{}
@@ -61,9 +61,9 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
 			}
 
-			ctrlOpts.Completed().Apply(&coreos.DefaultAddOptions.Controller)
+			ctrlOpts.Completed().Apply(&pkg.DefaultAddOptions.Controller)
 
-			if err := coreos.AddToManager(mgr); err != nil {
+			if err := pkg.AddToManager(mgr); err != nil {
 				controllercmd.LogErrAndExit(err, "Could not add controller to manager")
 			}
 

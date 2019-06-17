@@ -23,5 +23,5 @@ import (
 
 func TestInternal(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "CoreOS Alicloud Internal Suite")
+	RunSpecs(t, "OS Metal Internal Suite")
 }

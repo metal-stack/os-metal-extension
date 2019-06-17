@@ -34,6 +34,7 @@ func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 		return nil, nil, nil, fmt.Errorf("could not generate cloud config: %v", err)
 	}
 
+	// if ReloadConfigFilePath is given, this is executed to actually reload the written config
 	var command *string
 	if path := config.Spec.ReloadConfigFilePath; path != nil {
 		cmd := fmt.Sprintf("/usr/bin/env bash %s", *path)
@@ -43,6 +44,7 @@ func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 	return []byte(cloudConfig), command, operatingSystemConfigUnitNames(config), nil
 }
 
+// config is brought from Gardener
 func (a *actuator) cloudConfigFromOperatingSystemConfig(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
 	files := make([]*internal.File, 0, len(config.Spec.Files))
 	for _, file := range config.Spec.Files {

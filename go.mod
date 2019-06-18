@@ -97,8 +97,8 @@ require (
 )
 
 replace (
-	// github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.4.2
 	github.com/ajeddeloh/yaml => github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd // indirect
+	github.com/docker/docker => github.com/docker/engine v0.0.0-20190423201726-d2cfbce3f3b0
 	github.com/gardener/gardener => github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0
 	github.com/gardener/gardener-extensions => github.com/gardener/gardener-extensions v0.0.0-20190613151026-de024fbf5602
 	github.com/gardener/machine-controller-manager => github.com/gardener/machine-controller-manager v0.0.0-20190606071036-119056ee3fdd // indirect

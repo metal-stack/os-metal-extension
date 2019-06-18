@@ -10,6 +10,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// IgnitionFromOperatingSystemConfig is responsible to transpile the gardener OperatingSystemConfig to a ignition configuration.
+// This is currently done with container-linux-config-transpile v0.9.0 and creates ignition v2.2.0 compatible configuration,
+// which is used by ignition 0.32.0.
+// TODO
+// Starting with ignition 2.0, ignition itself contains the required parsing logic, so we can use ignition directly.
+// see https://github.com/coreos/ignition/blob/master/config/config.go#L38
+// Therefore we must update ignition to 2.0.0 in the images and transform the gardener config to the ignition config types instead.
 func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
 	cfg := types.Config{}
 	cfg.Systemd = types.Systemd{}

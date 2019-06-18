@@ -72,8 +72,6 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 			}
 		},
 	}
-
 	aggOption.AddFlags(cmd.Flags())
-
 	return cmd
 }

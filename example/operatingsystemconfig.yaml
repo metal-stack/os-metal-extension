@@ -37,6 +37,7 @@ spec:
           Hello World
   - path: /etc/sysctl.d/99-k8s-general.conf
     permissions: 0644
+    encoding: b64
     content:
       inline:
         data: |

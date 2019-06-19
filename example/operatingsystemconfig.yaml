@@ -30,16 +30,16 @@ spec:
   files:
   - path: /var/lib/kubelet/ca.crt
     permissions: 0644
-    encoding: b64
     content:
       inline:
+        encoding: b64
         data: |
           Hello World
   - path: /etc/sysctl.d/99-k8s-general.conf
     permissions: 0644
-    encoding: b64
     content:
       inline:
+        encoding: b64
         data: |
           # A higher vm.max_map_count is great for elasticsearch, mongo, or other mmap users
           # See https://github.com/kubernetes/kops/issues/1340

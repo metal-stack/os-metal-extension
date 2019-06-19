@@ -32,14 +32,14 @@ spec:
     permissions: 0644
     content:
       inline:
-        encoding: b64
+        encoding: ""
         data: |
           Hello World
   - path: /etc/sysctl.d/99-k8s-general.conf
     permissions: 0644
     content:
       inline:
-        encoding: b64
+        encoding: ""
         data: |
           # A higher vm.max_map_count is great for elasticsearch, mongo, or other mmap users
           # See https://github.com/kubernetes/kops/issues/1340

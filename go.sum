@@ -73,6 +73,9 @@ github.com/fatih/camelcase v1.0.0 h1:hxNvNX/xYBp0ovncs8WyWZrOrpBNub/JfaMvbURyft8
 github.com/fatih/camelcase v1.0.0/go.mod h1:yN2Sb0lFhZJUdVvtELVWefmrXpuZESvPmqwoZc+/fpc=
 github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0 h1:OjkS1BKgCKVxertaHZT6F586356iSXMTSfTA8xKtgKU=
 github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0/go.mod h1:uRS25af8GjLnNo7RErPDKhBsemnJADTldiQhtVbUPHw=
+github.com/gardener/gardener v0.0.0-20190625164109-a8baa4f8cf20 h1:eAicL6pfjjhYnUIc9KqCfimrjHg0TSLh7hN30wQobVI=
+github.com/gardener/gardener v0.0.0-20190625164109-a8baa4f8cf20/go.mod h1:uRS25af8GjLnNo7RErPDKhBsemnJADTldiQhtVbUPHw=
+github.com/gardener/gardener v0.0.0-20190626113652-646bde1b5746 h1:umCRfdaBOFFQeGXvQ/Jdg1GzrxokEFSD8mWDYy5e3bE=
 github.com/gardener/gardener-extensions v0.0.0-20190613151026-de024fbf5602 h1:CfeLzgtMPAC97dyR7mOnylXCbvfVkm5zAMyUAxsJv9E=
 github.com/gardener/gardener-extensions v0.0.0-20190613151026-de024fbf5602/go.mod h1:uXjtl3KeVdQXuGIP26+84wJY1Kwru67l0FXm7A5DiME=
 github.com/gardener/machine-controller-manager v0.0.0-20190606071036-119056ee3fdd h1:PrtJshi9rSN6V5w6FDFh9u1arfplk7ufxLKXFsasqzs=

@@ -28,9 +28,7 @@ require (
 	github.com/elazarl/goproxy/ext v0.0.0-20190421051319-9d40249d3c2f // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0
-	github.com/gardener/gardener-extensions v0.0.0-20190617062402-946f575a6489
-	github.com/gardener/machine-controller-manager v0.0.0-20190606071036-119056ee3fdd // indirect
+	github.com/gardener/gardener v0.0.0-20190625164109-a8baa4f8cf20 // indirect
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1 // indirect
 	github.com/gobuffalo/packd v0.1.0 // indirect
@@ -109,9 +107,6 @@ require (
 replace (
 	github.com/ajeddeloh/yaml => github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd // indirect
 	github.com/docker/docker => github.com/docker/engine v0.0.0-20190423201726-d2cfbce3f3b0
-	github.com/gardener/gardener => github.com/gardener/gardener v0.0.0-20190603053457-f718e4bd65f0
-	github.com/gardener/gardener-extensions => github.com/gardener/gardener-extensions v0.0.0-20190613151026-de024fbf5602
-	github.com/gardener/machine-controller-manager => github.com/gardener/machine-controller-manager v0.0.0-20190606071036-119056ee3fdd // indirect
 	github.com/russross/blackfriday => github.com/russross/blackfriday v0.0.0-20151117072312-300106c228d5 // indirect
 	k8s.io/api => k8s.io/api v0.0.0-20190222213804-5cb15d344471
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.0.0-20190228180357-d002e88f6236

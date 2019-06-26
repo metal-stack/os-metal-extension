@@ -15,8 +15,6 @@ github.com/Masterminds/sprig
 github.com/PuerkitoBio/purell
 # github.com/PuerkitoBio/urlesc v0.0.0-20160726150825-5bd2802263f2
 github.com/PuerkitoBio/urlesc
-# github.com/Sirupsen/logrus v0.0.0-00010101000000-000000000000 => github.com/sirupsen/logrus v1.4.2
-github.com/Sirupsen/logrus
 # github.com/ajeddeloh/go-json v0.0.0-20170920214419-6a2fe990e083
 github.com/ajeddeloh/go-json
 # github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd => github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd
@@ -58,7 +56,7 @@ github.com/davecgh/go-spew/spew
 # github.com/docker/distribution v2.7.1+incompatible
 github.com/docker/distribution/reference
 github.com/docker/distribution/digestset
-# github.com/docker/docker v1.13.1
+# github.com/docker/docker v1.13.1 => github.com/docker/engine v0.0.0-20190423201726-d2cfbce3f3b0
 github.com/docker/docker/pkg/term
 github.com/docker/docker/pkg/term/windows
 # github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c
@@ -139,8 +137,8 @@ github.com/gobuffalo/packd
 github.com/gobuffalo/packr
 # github.com/gobuffalo/packr/v2 v2.2.0
 github.com/gobuffalo/packr/v2
-github.com/gobuffalo/packr/v2/file
 github.com/gobuffalo/packr/v2/file/resolver
+github.com/gobuffalo/packr/v2/file
 github.com/gobuffalo/packr/v2/jam/parser
 github.com/gobuffalo/packr/v2/plog
 github.com/gobuffalo/packr/v2/file/resolver/encoding/hex

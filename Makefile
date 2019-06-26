@@ -65,7 +65,7 @@ all: generate
 
 .PHONY: docker-image
 docker-image:
-	@docker build --build-arg VERIFY=$(VERIFY) -t metalpod/os-metal:$(VERSION) -t metalpod/os-metal:latest -f Dockerfile .
+	@docker build --build-arg VERIFY=$(VERIFY) -t metalpod/os-metal-extension:latest -t metalpod/os-metal-extension:$(VERSION) -f Dockerfile .
 
 ### Debug / Development commands
 

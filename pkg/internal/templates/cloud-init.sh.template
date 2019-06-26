@@ -3,7 +3,7 @@
 # FIXME this file is cloud provider specific and must be adopted to match our requirements.
 # after modifications, it must be compiled with hack/generate, which create the chart entry in controller-registration.yaml
 # This step is already done in the Dockerfile.
-# should be renamed to ignition.go
+# should be renamed to ignition.sh.template
 
 {{- define "put-content" -}}
 cat << EOF | base64 -d > '{{ .Path }}'

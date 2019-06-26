@@ -1,5 +1,5 @@
 image:
-  repository: metalpod/os-metal
+  repository: metalpod/os-metal-extension
   tag: latest
   pullPolicy: IfNotPresent
 

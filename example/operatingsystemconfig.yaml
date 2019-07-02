@@ -27,6 +27,25 @@ spec:
       Restart=always
       EnvironmentFile=/etc/environment
       ExecStart=/opt/bin/health-monitor docker
+  - name: gardener-cc.service
+    enable: true
+    content: |
+      [Unit]
+      Description=gardener-cloud-config reconfiguration
+      [Service]
+      ExecStart=-/var/lib/cloud-config-downloader/download-cloud-config.sh
+      [Install]
+      WantedBy=multi-user.target
+  - name: gardener-cc.timer
+    enable: true
+    content: |
+      [Unit]
+      Description=gardener-cloud-config reconfiguration periodic restart
+      [Timer]
+      OnBootSec=60sec
+      OnCalendar=*:*:01
+      [Install]
+      WantedBy=timers.target
   files:
   - path: /var/lib/kubelet/ca.crt
     permissions: 0644

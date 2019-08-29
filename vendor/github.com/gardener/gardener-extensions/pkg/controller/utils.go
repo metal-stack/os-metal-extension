@@ -17,23 +17,25 @@ package controller
 import (
 	"context"
 	"fmt"
-	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
-	corev1 "k8s.io/api/core/v1"
 	"reflect"
 	"time"
 
 	controllererror "github.com/gardener/gardener-extensions/pkg/controller/error"
 	"github.com/gardener/gardener-extensions/pkg/util"
-
+	resourcemanagerv1alpha1 "github.com/gardener/gardener-resource-manager/pkg/apis/resources/v1alpha1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 
+	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/apimachinery/pkg/util/wait"
+	autoscalingv1beta2 "k8s.io/autoscaler/vertical-pod-autoscaler/pkg/apis/autoscaling.k8s.io/v1beta2"
 	"k8s.io/client-go/kubernetes/scheme"
 
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,6 +49,7 @@ var (
 	localSchemeBuilder = runtime.NewSchemeBuilder(
 		scheme.AddToScheme,
 		extensionsv1alpha1.AddToScheme,
+		resourcemanagerv1alpha1.AddToScheme,
 	)
 
 	// AddToScheme adds the Kubernetes and extension scheme to the given scheme.
@@ -173,10 +176,12 @@ func DeleteFinalizer(ctx context.Context, client client.Client, finalizerName st
 	return client.Update(ctx, obj)
 }
 
+// SecretReferenceToKey returns the key of the given SecretReference.
 func SecretReferenceToKey(ref *corev1.SecretReference) client.ObjectKey {
 	return kutil.Key(ref.Namespace, ref.Name)
 }
 
+// GetSecretByReference returns the Secret object matching the given SecretReference.
 func GetSecretByReference(ctx context.Context, c client.Client, ref *corev1.SecretReference) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	if err := c.Get(ctx, SecretReferenceToKey(ref), secret); err != nil {
@@ -184,30 +189,6 @@ func GetSecretByReference(ctx context.Context, c client.Client, ref *corev1.Secr
 	}
 
 	return secret, nil
-}
-
-// CreateOrUpdate creates or updates the object. Optionally, it executes a transformation function before the
-// request is made.
-func CreateOrUpdate(ctx context.Context, c client.Client, obj runtime.Object, transform func() error) error {
-	key, err := client.ObjectKeyFromObject(obj)
-	if err != nil {
-		return err
-	}
-
-	if err := c.Get(ctx, key, obj); err != nil {
-		if apierrors.IsNotFound(err) {
-			if transform != nil && transform() != nil {
-				return err
-			}
-			return c.Create(ctx, obj)
-		}
-		return err
-	}
-
-	if transform != nil && transform() != nil {
-		return err
-	}
-	return c.Update(ctx, obj)
 }
 
 // TryUpdate tries to apply the given transformation function onto the given object, and to update it afterwards.
@@ -222,7 +203,7 @@ func TryUpdateStatus(ctx context.Context, backoff wait.Backoff, c client.Client,
 	return tryUpdate(ctx, backoff, c, obj, c.Status().Update, transform)
 }
 
-func tryUpdate(ctx context.Context, backoff wait.Backoff, c client.Client, obj runtime.Object, updateFunc func(context.Context, runtime.Object) error, transform func() error) error {
+func tryUpdate(ctx context.Context, backoff wait.Backoff, c client.Client, obj runtime.Object, updateFunc func(context.Context, runtime.Object, ...client.UpdateOptionFunc) error, transform func() error) error {
 	key, err := client.ObjectKeyFromObject(obj)
 	if err != nil {
 		return err
@@ -313,4 +294,12 @@ func UnsafeGuessKind(obj runtime.Object) string {
 	}
 
 	return t.Elem().Name()
+}
+
+// GetVerticalPodAutoscalerObject returns unstructured.Unstructured representing autoscalingv1beta2.VerticalPodAutoscaler
+func GetVerticalPodAutoscalerObject() *unstructured.Unstructured {
+	obj := &unstructured.Unstructured{}
+	obj.SetAPIVersion(autoscalingv1beta2.SchemeGroupVersion.String())
+	obj.SetKind("VerticalPodAutoscaler")
+	return obj
 }

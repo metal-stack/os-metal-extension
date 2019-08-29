@@ -17,7 +17,28 @@ package controller
 import (
 	gardencorev1alpha1 "github.com/gardener/gardener/pkg/apis/core/v1alpha1"
 	gardenv1beta1 "github.com/gardener/gardener/pkg/apis/garden/v1beta1"
+	"github.com/gardener/gardener/pkg/chartrenderer"
 )
+
+const (
+	// ShootNoCleanupLabel is a constant for a label on a resource indicating the the Gardener cleaner should not delete this
+	// resource when cleaning a shoot during the deletion flow.
+	ShootNoCleanupLabel = "shoot.gardener.cloud/no-cleanup"
+)
+
+// ChartRendererFactory creates chartrenderer.Interface to be used by this actuator.
+type ChartRendererFactory interface {
+	// NewChartRendererForShoot creates a new chartrenderer.Interface for the shoot cluster.
+	NewChartRendererForShoot(string) (chartrenderer.Interface, error)
+}
+
+// ChartRendererFactoryFunc is a function that satisfies ChartRendererFactory.
+type ChartRendererFactoryFunc func(string) (chartrenderer.Interface, error)
+
+// NewChartRendererForShoot creates a new chartrenderer.Interface for the shoot cluster.
+func (f ChartRendererFactoryFunc) NewChartRendererForShoot(version string) (chartrenderer.Interface, error) {
+	return f(version)
+}
 
 // GetPodNetwork returns the pod network CIDR of the given Shoot.
 func GetPodNetwork(shoot *gardenv1beta1.Shoot) gardencorev1alpha1.CIDR {
@@ -33,6 +54,8 @@ func GetPodNetwork(shoot *gardenv1beta1.Shoot) gardencorev1alpha1.CIDR {
 		return *cloud.OpenStack.Networks.K8SNetworks.Pods
 	case cloud.Alicloud != nil:
 		return *cloud.Alicloud.Networks.K8SNetworks.Pods
+	case cloud.Packet != nil:
+		return *cloud.Packet.Networks.K8SNetworks.Pods
 	default:
 		return ""
 	}
@@ -40,12 +63,21 @@ func GetPodNetwork(shoot *gardenv1beta1.Shoot) gardencorev1alpha1.CIDR {
 
 // IsHibernated returns true if the shoot is hibernated, or false otherwise.
 func IsHibernated(shoot *gardenv1beta1.Shoot) bool {
-	return shoot.Spec.Hibernation != nil && shoot.Spec.Hibernation.Enabled
+	return shoot.Spec.Hibernation != nil && shoot.Spec.Hibernation.Enabled != nil && *shoot.Spec.Hibernation.Enabled
 }
 
 // GetReplicas returns the woken up replicas of the given Shoot.
 func GetReplicas(shoot *gardenv1beta1.Shoot, wokenUp int) int {
 	if IsHibernated(shoot) {
+		return 0
+	}
+	return wokenUp
+}
+
+// GetControlPlaneReplicas returns the woken up replicas for controlplane components of the given Shoot
+// that should only be scaled down at the end of the flow.
+func GetControlPlaneReplicas(shoot *gardenv1beta1.Shoot, scaledDown bool, wokenUp int) int {
+	if shoot.DeletionTimestamp == nil && IsHibernated(shoot) && scaledDown {
 		return 0
 	}
 	return wokenUp

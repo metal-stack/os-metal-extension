@@ -12,8 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REGISTRY                    := docker.io/
-IMAGE_PREFIX                := $(REGISTRY)/metal-pod
+REGISTRY                    := docker.io
+IMAGE_PREFIX                := $(REGISTRY)/metalpod
+IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
 HOSTNAME                    := $(shell hostname)
@@ -65,7 +66,12 @@ all: generate
 
 .PHONY: docker-image
 docker-image:
-	@docker build --build-arg VERIFY=$(VERIFY) -t metalpod/os-metal-extension:latest -t metalpod/os-metal-extension:$(VERSION) -f Dockerfile .
+	@docker build --build-arg VERIFY=$(VERIFY) -t $(IMAGE_PREFIX)/os-metal-extension:$(IMAGE_TAG) -f Dockerfile .
+
+.PHONY: docker-push
+docker-push:
+	@docker push $(IMAGE_PREFIX)/os-metal-extension:$(IMAGE_TAG)
+
 
 ### Debug / Development commands
 

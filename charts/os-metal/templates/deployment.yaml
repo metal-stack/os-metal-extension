@@ -26,7 +26,9 @@ spec:
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         command:
         - /os-metal
-        - --max-concurrent-reconciles={{ .Values.concurrentSyncs }}
+        - --max-concurrent-reconciles={{ .Values.controllers.concurrentSyncs }}
+        - --disable-controllers={{ .Values.disableControllers | join "," }}
+        - --ignore-operation-annotation={{ .Values.controllers.ignoreOperationAnnotation }}
         env:
         - name: LEADER_ELECTION_NAMESPACE
           valueFrom:

@@ -17,9 +17,9 @@ package operatingsystemconfig
 import (
 	"context"
 	"fmt"
+
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 
-	"github.com/gardener/gardener-extensions/pkg/controller"
 	extensionscontroller "github.com/gardener/gardener-extensions/pkg/controller"
 	"github.com/gardener/gardener-extensions/pkg/util"
 	gardencorev1alpha1 "github.com/gardener/gardener/pkg/apis/core/v1alpha1"
@@ -56,7 +56,10 @@ var _ reconcile.Reconciler = &reconciler{}
 // OperatingSystemConfig resources of Gardener's `extensions.gardener.cloud` API group.
 func NewReconciler(actuator Actuator) reconcile.Reconciler {
 	logger := log.Log.WithName(name)
-	return &reconciler{logger: logger, actuator: actuator}
+	return extensionscontroller.OperationAnnotationWrapper(
+		&extensionsv1alpha1.OperatingSystemConfig{},
+		&reconciler{logger: logger, actuator: actuator},
+	)
 }
 
 // InjectFunc enables dependency injection into the actuator.
@@ -119,7 +122,7 @@ func (r *reconciler) reconcile(ctx context.Context, osc *extensionsv1alpha1.Oper
 	}
 
 	secret := &corev1.Secret{ObjectMeta: SecretObjectMetaForConfig(osc)}
-	if err := controller.CreateOrUpdate(ctx, r.client, secret, func() error {
+	if _, err := controllerutil.CreateOrUpdate(ctx, r.client, secret, func() error {
 		if secret.Data == nil {
 			secret.Data = make(map[string][]byte)
 		}

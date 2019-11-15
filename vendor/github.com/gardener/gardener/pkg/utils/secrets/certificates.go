@@ -30,6 +30,7 @@ import (
 	"github.com/gardener/gardener/pkg/utils"
 	kutil "github.com/gardener/gardener/pkg/utils/kubernetes"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -55,6 +56,13 @@ const (
 	DataKeyPrivateKeyCA = "ca.key"
 )
 
+const (
+	// PKCS1 certificate format
+	PKCS1 = iota
+	// PKCS8 certificate format
+	PKCS8
+)
+
 // CertificateSecretConfig contains the specification a to-be-generated CA, server, or client certificate.
 // It always contains a 2048-bit RSA private key.
 type CertificateSecretConfig struct {
@@ -67,6 +75,7 @@ type CertificateSecretConfig struct {
 
 	CertType  certType
 	SigningCA *Certificate
+	PKCS      int
 }
 
 // Certificate contains the private key, and the certificate. It does also contain the CA certificate
@@ -95,39 +104,52 @@ func (s *CertificateSecretConfig) Generate() (Interface, error) {
 
 // GenerateCertificate computes a CA, server, or client certificate based on the configuration.
 func (s *CertificateSecretConfig) GenerateCertificate() (*Certificate, error) {
-	var certificate = s.generateCertificateTemplate()
-
-	privateKey, err := generateRSAPrivateKey(2048)
-	if err != nil {
-		return nil, err
-	}
-
-	var (
-		certificateSigner = certificate
-		privateKeySigner  = privateKey
-	)
-
-	if s.SigningCA != nil {
-		certificateSigner = s.SigningCA.Certificate
-		privateKeySigner = s.SigningCA.PrivateKey
-	}
-
-	certificatePEM, err := signCertificate(certificate, privateKey, certificateSigner, privateKeySigner)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Certificate{
+	certificateObj := &Certificate{
 		Name: s.Name,
+		CA:   s.SigningCA,
+	}
 
-		CA: s.SigningCA,
+	// If no cert type is given then we only return a certificate object that contains the CA.
+	if s.CertType != "" {
+		privateKey, err := generateRSAPrivateKey(2048)
+		if err != nil {
+			return nil, err
+		}
 
-		PrivateKey:    privateKey,
-		PrivateKeyPEM: utils.EncodePrivateKey(privateKey),
+		var (
+			certificate       = s.generateCertificateTemplate()
+			certificateSigner = certificate
+			privateKeySigner  = privateKey
+		)
 
-		Certificate:    certificate,
-		CertificatePEM: certificatePEM,
-	}, nil
+		if s.SigningCA != nil {
+			certificateSigner = s.SigningCA.Certificate
+			privateKeySigner = s.SigningCA.PrivateKey
+		}
+
+		certificatePEM, err := signCertificate(certificate, privateKey, certificateSigner, privateKeySigner)
+		if err != nil {
+			return nil, err
+		}
+
+		var pk []byte
+		if s.PKCS == PKCS1 {
+			pk = utils.EncodePrivateKey(privateKey)
+		} else if s.PKCS == PKCS8 {
+			pk, err = utils.EncodePrivateKeyInPKCS8(privateKey)
+
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		certificateObj.PrivateKey = privateKey
+		certificateObj.PrivateKeyPEM = pk
+		certificateObj.Certificate = certificate
+		certificateObj.CertificatePEM = certificatePEM
+	}
+
+	return certificateObj, nil
 }
 
 // SecretData computes the data map which can be used in a Kubernetes secret.
@@ -246,8 +268,16 @@ func generateCA(k8sClusterClient kubernetes.Interface, config *CertificateSecret
 		return nil, nil, err
 	}
 
-	secret, err := k8sClusterClient.CreateSecret(namespace, config.GetName(), corev1.SecretTypeOpaque, certificate.SecretData(), false)
-	if err != nil {
+	secret := &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      config.GetName(),
+			Namespace: namespace,
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: certificate.SecretData(),
+	}
+
+	if err := k8sClusterClient.Client().Create(context.TODO(), secret); err != nil {
 		return nil, nil, err
 	}
 	return secret, certificate, nil

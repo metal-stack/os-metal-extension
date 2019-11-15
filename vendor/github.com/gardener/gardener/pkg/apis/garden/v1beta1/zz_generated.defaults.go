@@ -82,6 +82,16 @@ func SetObjectDefaults_CloudProfile(in *CloudProfile) {
 			SetDefaults_VolumeType(a)
 		}
 	}
+	if in.Spec.Metal != nil {
+		for i := range in.Spec.Metal.Constraints.MachineTypes {
+			a := &in.Spec.Metal.Constraints.MachineTypes[i]
+			SetDefaults_MachineType(a)
+		}
+		for i := range in.Spec.Metal.Constraints.VolumeTypes {
+			a := &in.Spec.Metal.Constraints.VolumeTypes[i]
+			SetDefaults_VolumeType(a)
+		}
+	}
 }
 
 func SetObjectDefaults_CloudProfileList(in *CloudProfileList) {
@@ -126,6 +136,11 @@ func SetObjectDefaults_SeedList(in *SeedList) {
 
 func SetObjectDefaults_Shoot(in *Shoot) {
 	SetDefaults_Shoot(in)
+	if in.Spec.Addons != nil {
+		if in.Spec.Addons.KubernetesDashboard != nil {
+			SetDefaults_KubernetesDashboard(in.Spec.Addons.KubernetesDashboard)
+		}
+	}
 	if in.Spec.Cloud.AWS != nil {
 		for i := range in.Spec.Cloud.AWS.Workers {
 			a := &in.Spec.Cloud.AWS.Workers[i]
@@ -159,6 +174,12 @@ func SetObjectDefaults_Shoot(in *Shoot) {
 	if in.Spec.Cloud.Packet != nil {
 		for i := range in.Spec.Cloud.Packet.Workers {
 			a := &in.Spec.Cloud.Packet.Workers[i]
+			SetDefaults_Worker(&a.Worker)
+		}
+	}
+	if in.Spec.Cloud.Metal != nil {
+		for i := range in.Spec.Cloud.Metal.Workers {
+			a := &in.Spec.Cloud.Metal.Workers[i]
 			SetDefaults_Worker(&a.Worker)
 		}
 	}

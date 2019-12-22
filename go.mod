@@ -8,7 +8,7 @@ require (
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
 	github.com/census-instrumentation/opencensus-proto v0.2.1 // indirect
 	github.com/coreos/container-linux-config-transpiler v0.9.0
-	github.com/coreos/ignition v0.32.0 // indirect
+	github.com/coreos/ignition v0.34.0 // indirect
 	github.com/gardener/gardener v0.33.1-0.20191217084546-948979065a54
 	github.com/gardener/gardener-extensions v1.1.0
 	github.com/go-logr/logr v0.1.0
@@ -25,4 +25,5 @@ require (
 )
 
 replace github.com/ajeddeloh/yaml => github.com/ajeddeloh/yaml v0.0.0-20170912190910-6b94386aeefd // indirect
+
 replace github.com/census-instrumentation/opencensus-proto => github.com/census-instrumentation/opencensus-proto v0.2.1

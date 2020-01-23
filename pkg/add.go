@@ -19,12 +19,13 @@ import (
 
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 var (
 	// DefaultAddOptions are the default controller.Options for AddToManager.
 	DefaultAddOptions = AddOptions{}
+	// Types are the types of operating system configs the os metal controller monitors.
+	Types = []string{"ubuntu", "debian"}
 )
 
 // AddOptions are the options for adding the controller to the manager.
@@ -38,15 +39,11 @@ type AddOptions struct {
 // AddToManagerWithOptions adds a controller with the given Options to the given manager.
 // The opts.Reconciler is being set with a newly instantiated actuator.
 func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
-	var predicates []predicate.Predicate
-	ubuntuPredicates := operatingsystemconfig.DefaultPredicates("ubuntu", opts.IgnoreOperationAnnotation)
-	debianPredicates := operatingsystemconfig.DefaultPredicates("debian", opts.IgnoreOperationAnnotation)
-	predicates = append(predicates, ubuntuPredicates...)
-	predicates = append(predicates, debianPredicates...)
 	return operatingsystemconfig.Add(mgr, operatingsystemconfig.AddArgs{
 		Actuator:          NewActuator(),
 		ControllerOptions: opts.Controller,
-		Predicates:        predicates,
+		Predicates:        operatingsystemconfig.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Types:             Types,
 	})
 }
 

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate ../../hack/generate-controller-registration.sh os-metal . ../../example/controller-registration.yaml OperatingSystemConfig:metal
+//go:generate ../../hack/generate-controller-registration.sh os-metal . ../../example/controller-registration.yaml OperatingSystemConfig:ubuntu  OperatingSystemConfig:debian
 
 // Package chart enables go:generate support for generating the correct controller registration.
 package chart

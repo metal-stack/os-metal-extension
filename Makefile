@@ -62,7 +62,7 @@ install:
 
 .PHONY: all
 all: generate
-	go build -mod vendor -tags netgo -o os-metal cmd/main.go
+	go build -tags netgo -o os-metal cmd/main.go
 
 .PHONY: docker-image
 docker-image:
@@ -72,13 +72,7 @@ docker-image:
 docker-push:
 	@docker push $(IMAGE_PREFIX)/os-metal-extension:$(IMAGE_TAG)
 
-
 ### Debug / Development commands
-
-.PHONY: revendor
-revendor:
-	@dep ensure -update
-
 .PHONY: start-os-metal
 start-os-metal:
 	@LEADER_ELECTION_NAMESPACE=garden go run \

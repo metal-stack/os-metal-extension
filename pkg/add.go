@@ -21,12 +21,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-// Type is the type of operating system configs the os metal controller monitors.
-const Type = "ubuntu"
-
 var (
 	// DefaultAddOptions are the default controller.Options for AddToManager.
 	DefaultAddOptions = AddOptions{}
+	// Types are the types of operating system configs the os metal controller monitors.
+	Types = []string{"ubuntu", "debian"}
 )
 
 // AddOptions are the options for adding the controller to the manager.
@@ -43,7 +42,8 @@ func AddToManagerWithOptions(mgr manager.Manager, opts AddOptions) error {
 	return operatingsystemconfig.Add(mgr, operatingsystemconfig.AddArgs{
 		Actuator:          NewActuator(),
 		ControllerOptions: opts.Controller,
-		Predicates:        operatingsystemconfig.DefaultPredicates(Type, opts.IgnoreOperationAnnotation),
+		Predicates:        operatingsystemconfig.DefaultPredicates(opts.IgnoreOperationAnnotation),
+		Types:             Types,
 	})
 }
 

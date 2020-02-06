@@ -19,7 +19,7 @@ import (
 	"fmt"
 	oscommon "github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/metal-pod/os-metal-extension/pkg/internal"
+	"github.com/metal-stack/os-metal-extension/pkg/internal"
 )
 
 func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {

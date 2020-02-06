@@ -1,4 +1,4 @@
-module github.com/metal-pod/os-metal-extension
+module github.com/metal-stack/os-metal-extension
 
 go 1.13
 

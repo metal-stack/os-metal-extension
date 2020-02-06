@@ -13,7 +13,7 @@
 # limitations under the License.
 
 REGISTRY                    := docker.io
-IMAGE_PREFIX                := $(REGISTRY)/metalpod
+IMAGE_PREFIX                := $(REGISTRY)/metalstack
 IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack

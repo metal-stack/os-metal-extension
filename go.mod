@@ -8,8 +8,9 @@ require (
 	github.com/alecthomas/units v0.0.0-20190717042225-c3de453c63f4 // indirect
 	github.com/coreos/container-linux-config-transpiler v0.9.0
 	github.com/coreos/ignition v0.34.0 // indirect
-	github.com/gardener/gardener v0.35.0
-	github.com/gardener/gardener-extensions v1.2.1-0.20200124130837-49098fd8b7ea
+	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
+	github.com/gardener/gardener v0.35.1-0.20200128130120-5b69a02f511a
+	github.com/gardener/gardener-extensions v1.3.0
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/packr v1.30.1
 	github.com/gobuffalo/packr/v2 v2.7.1

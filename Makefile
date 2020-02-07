@@ -62,7 +62,7 @@ install:
 
 .PHONY: all
 all: generate
-	go build -tags netgo -o os-metal cmd/main.go
+	go build -trimpath -tags netgo -o os-metal cmd/main.go
 
 .PHONY: docker-image
 docker-image:

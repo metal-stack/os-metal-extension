@@ -17,12 +17,13 @@ package main
 import (
 	"github.com/gardener/gardener-extensions/pkg/controller"
 	controllercmd "github.com/gardener/gardener-extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener-extensions/pkg/log"
 	"github.com/metal-stack/os-metal-extension/cmd/app"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func main() {
-	log.SetLogger(log.ZapLogger(false))
+	runtimelog.SetLogger(log.ZapLogger(false))
 	cmd := app.NewControllerCommand(controller.SetupSignalHandlerContext())
 
 	if err := cmd.Execute(); err != nil {

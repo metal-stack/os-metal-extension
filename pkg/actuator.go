@@ -17,7 +17,7 @@ package pkg
 import (
 	"context"
 
-	"github.com/gardener/gardener-extensions/pkg/controller/operatingsystemconfig"
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig"
 
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 
@@ -56,4 +56,10 @@ func (a *actuator) Reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 
 func (a *actuator) Delete(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) error {
 	return a.delete(ctx, config)
+}
+func (a *actuator) Migrate(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) error {
+	return a.migrate(ctx, config)
+}
+func (a *actuator) Restore(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {
+	return a.restore(ctx, config)
 }

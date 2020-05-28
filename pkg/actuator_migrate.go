@@ -12,21 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package pkg
 
 import (
-	"github.com/gardener/gardener/extensions/pkg/controller"
-	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	"github.com/gardener/gardener/extensions/pkg/log"
-	"github.com/metal-stack/os-metal-extension/cmd/app"
-	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
+	"context"
+
+	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 )
 
-func main() {
-	runtimelog.SetLogger(log.ZapLogger(false))
-	cmd := app.NewControllerCommand(controller.SetupSignalHandlerContext())
-
-	if err := cmd.Execute(); err != nil {
-		controllercmd.LogErrAndExit(err, "error executing the main controller command")
-	}
+func (a *actuator) migrate(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) error {
+	// FIXME implement
+	return nil
 }

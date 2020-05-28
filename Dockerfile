@@ -1,5 +1,5 @@
 #############      builder-base                             #############
-FROM golang:1.13 AS builder
+FROM golang:1.14 AS builder
 WORKDIR /work
 COPY . .
 # RUN go mod download

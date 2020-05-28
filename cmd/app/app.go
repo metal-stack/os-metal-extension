@@ -18,8 +18,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/gardener/gardener-extensions/pkg/controller"
-	controllercmd "github.com/gardener/gardener-extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/controller"
+	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
 	"github.com/metal-stack/os-metal-extension/pkg"
 	"github.com/spf13/cobra"
 	"sigs.k8s.io/controller-runtime/pkg/manager"

@@ -4,10 +4,44 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/coreos/container-linux-config-transpiler/config/types"
 	oscommon "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	containerdSystemdConfig = `
+[Service]
+ExecStart=
+ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
+`
+	containerdConfig = `
+root = "/var/lib/containerd"
+state = "/run/containerd"
+oom_score = 0
+
+[grpc]
+	address = "/run/containerd/containerd.sock"
+	uid = 0
+	gid = 0
+	max_recv_message_size = 16777216
+	max_send_message_size = 16777216
+
+[debug]
+	address = ""
+	uid = 0
+	gid = 0
+	level = ""
+
+[metrics]
+	address = ""
+	grpc_histogram = false
+
+[cgroup]
+	path = ""
+`
 )
 
 // IgnitionFromOperatingSystemConfig is responsible to transpile the gardener OperatingSystemConfig to a ignition configuration.
@@ -67,6 +101,31 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 			},
 		}
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)
+	}
+
+	if config.Spec.CRIConfig != nil {
+		cri := config.Spec.CRIConfig
+		if cri.Name == extensionsv1alpha1.CRINameContainerD {
+			containerdSystemdConfigFile := types.File{
+				Path:       "/etc/systemd/system/containerd.service.d/11-exec_config.conf",
+				Filesystem: "root",
+				Mode:       &types.DefaultFileMode,
+				Contents: types.FileContents{
+					Inline: string(containerdSystemdConfig),
+				},
+			}
+			cfg.Storage.Files = append(cfg.Storage.Files, containerdSystemdConfigFile)
+
+			containerdConfigFile := types.File{
+				Path:       "/etc/containerd/config.toml",
+				Filesystem: "root",
+				Mode:       &types.DefaultFileMode,
+				Contents: types.FileContents{
+					Inline: string(containerdConfig),
+				},
+			}
+			cfg.Storage.Files = append(cfg.Storage.Files, containerdConfigFile)
+		}
 	}
 
 	outCfg, report := types.Convert(cfg, "", nil)

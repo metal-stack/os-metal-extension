@@ -18,29 +18,8 @@ ExecStart=
 ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 `
 	containerdConfig = `
-root = "/var/lib/containerd"
-state = "/run/containerd"
-oom_score = 0
-
-[grpc]
-	address = "/run/containerd/containerd.sock"
-	uid = 0
-	gid = 0
-	max_recv_message_size = 16777216
-	max_send_message_size = 16777216
-
-[debug]
-	address = ""
-	uid = 0
-	gid = 0
-	level = ""
-
-[metrics]
-	address = ""
-	grpc_histogram = false
-
-[cgroup]
-	path = ""
+# created by os-extension-metal
+# This config is intentially left blank to force containerd to be started with default config
 `
 )
 

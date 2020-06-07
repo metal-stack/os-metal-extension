@@ -85,22 +85,24 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 	if config.Spec.CRIConfig != nil {
 		cri := config.Spec.CRIConfig
 		if cri.Name == extensionsv1alpha1.CRINameContainerD {
-			containerdSystemdConfigFile := types.File{
-				Path:       "/etc/systemd/system/containerd.service.d/11-exec_config.conf",
-				Filesystem: "root",
-				Mode:       &types.DefaultFileMode,
-				Contents: types.FileContents{
-					Inline: string(containerdSystemdConfig),
+
+			containerdSystemdService := types.SystemdUnit{
+				Name: "containerd.service",
+				Dropins: []types.SystemdUnitDropIn{
+					{
+						Name:     "11-exec_config.conf",
+						Contents: containerdSystemdConfig,
+					},
 				},
 			}
-			cfg.Storage.Files = append(cfg.Storage.Files, containerdSystemdConfigFile)
+			cfg.Systemd.Units = append(cfg.Systemd.Units, containerdSystemdService)
 
 			containerdConfigFile := types.File{
 				Path:       "/etc/containerd/config.toml",
 				Filesystem: "root",
 				Mode:       &types.DefaultFileMode,
 				Contents: types.FileContents{
-					Inline: string(containerdConfig),
+					Inline: containerdConfig,
 				},
 			}
 			cfg.Storage.Files = append(cfg.Storage.Files, containerdConfigFile)

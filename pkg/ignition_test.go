@@ -98,7 +98,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Dropins: []types.SystemdUnitDropIn{
 								{
 									Name:     "11-exec_config.conf",
-									Contents: containerdSystemdConfig,
+									Contents: containerdSystemdDropin,
 								},
 							},
 						},

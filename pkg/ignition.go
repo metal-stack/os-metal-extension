@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	containerdSystemdConfig = `
+	containerdSystemdDropin = `
 [Service]
 ExecStart=
 ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
@@ -91,7 +91,7 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 				Dropins: []types.SystemdUnitDropIn{
 					{
 						Name:     "11-exec_config.conf",
-						Contents: containerdSystemdConfig,
+						Contents: containerdSystemdDropin,
 					},
 				},
 			}

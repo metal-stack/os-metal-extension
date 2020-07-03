@@ -7,7 +7,7 @@ RUN hack/install-requirements.sh
 RUN make VERIFY=$VERIFY all
 
 #############      base                                     #############
-FROM alpine:3.11 AS base
+FROM alpine:3.12 AS base
 WORKDIR /
 COPY charts /charts
 

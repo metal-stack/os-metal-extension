@@ -21,6 +21,6 @@ import (
 )
 
 func (a *actuator) restore(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {
-	// FIXME implement
+	// FIXME implement, actually reconcile is called
 	return nil, nil, nil, nil
 }

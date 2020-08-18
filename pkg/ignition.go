@@ -4,10 +4,23 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+
 	"github.com/coreos/container-linux-config-transpiler/config/types"
 	oscommon "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+)
+
+const (
+	containerdSystemdDropin = `
+[Service]
+ExecStart=
+ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
+`
+	containerdConfig = `
+# created by os-extension-metal
+# This config is intentially left blank to force containerd to be started with default config
+`
 )
 
 // IgnitionFromOperatingSystemConfig is responsible to transpile the gardener OperatingSystemConfig to a ignition configuration.
@@ -67,6 +80,33 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 			},
 		}
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)
+	}
+
+	if config.Spec.CRIConfig != nil {
+		cri := config.Spec.CRIConfig
+		if cri.Name == extensionsv1alpha1.CRINameContainerD {
+
+			containerdSystemdService := types.SystemdUnit{
+				Name: "containerd.service",
+				Dropins: []types.SystemdUnitDropIn{
+					{
+						Name:     "11-exec_config.conf",
+						Contents: containerdSystemdDropin,
+					},
+				},
+			}
+			cfg.Systemd.Units = append(cfg.Systemd.Units, containerdSystemdService)
+
+			containerdConfigFile := types.File{
+				Path:       "/etc/containerd/config.toml",
+				Filesystem: "root",
+				Mode:       &types.DefaultFileMode,
+				Contents: types.FileContents{
+					Inline: containerdConfig,
+				},
+			}
+			cfg.Storage.Files = append(cfg.Storage.Files, containerdConfigFile)
+		}
 	}
 
 	outCfg, report := types.Convert(cfg, "", nil)

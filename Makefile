@@ -45,6 +45,14 @@ clean:
 generate:
 	@./hack/generate.sh
 
+.PHONE: generate-in-docker
+generate-in-docker:
+	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:1.14 \
+		sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
+				&& ./hack/install-requirements.sh \
+				&& make generate \
+				&& chown -R $(shell id -u):$(shell id -g) ."
+
 .PHONY: check
 check:
 	@./hack/check.sh

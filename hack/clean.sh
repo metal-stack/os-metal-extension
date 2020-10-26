@@ -16,12 +16,12 @@
 set -e
 
 
-DIRNAME="$(echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )")"
+DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 source "$DIRNAME/common.sh"
 
 header_text "Clean"
 
-for source_tree in ${SOURCE_TREES[@]}; do
+for source_tree in "${SOURCE_TREES[@]}"; do
   find "$(dirname "$source_tree")" -type f -name "controller-registration.yaml" -exec rm '{}' \;
   find "$(dirname "$source_tree")" -type f -name "zz_*.go" -exec rm '{}' \;
   grep -lr --include="*.go" "//go:generate packr2" . | xargs -I {} packr2 clean "{}/.."

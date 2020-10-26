@@ -15,7 +15,7 @@
 # limitations under the License.
 set -e
 
-DIRNAME="$(echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )")"
+DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 cd "$DIRNAME/../tools"
 export GO111MODULE=on
@@ -25,22 +25,3 @@ go install "github.com/onsi/ginkgo/ginkgo"
 go install "github.com/golang/mock/mockgen"
 go install "github.com/golangci/golangci-lint/cmd/golangci-lint"
 curl -s "https://raw.githubusercontent.com/helm/helm/v2.16.10/scripts/get" | bash -s -- --version 'v2.13.1'
-
-if [[ "$(uname -s)" == *"Darwin"* ]]; then
-  cat <<EOM
-You are running in a MAC OS environment!
-
-Please make sure you have installed the following requirements:
-
-- GNU Core Utils
-- GNU Tar
-
-Brew command:
-$ brew install coreutils gnu-tar
-
-Please allow them to be used without their "g" prefix:
-$ export PATH=/usr/local/opt/coreutils/libexec/gnubin:\$PATH
-
-EOM
-fi
-

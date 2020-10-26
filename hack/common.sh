@@ -15,8 +15,7 @@
 # limitations under the License.
 set -e
 
-DIRNAME="$(echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )")"
-ROOT="$DIRNAME/.."
+DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 # Enable tracing in this script off by setting the TRACE variable in your
 # environment to any value:
@@ -43,9 +42,6 @@ fi
 function header_text {
   echo "$header$*$reset"
 }
-
-SOURCE_TREES=(./pkg/... ./charts/...)
-CMD_TREES=(./cmd/...)
 
 VERSIONFILE_VERSION="$(cat "$DIRNAME/../VERSION")"
 VERSION="${VERSION:-${EFFECTIVE_VERSION:-"$VERSIONFILE_VERSION"}}"

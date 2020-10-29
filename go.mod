@@ -8,7 +8,7 @@ require (
 	github.com/coreos/container-linux-config-transpiler v0.9.0
 	github.com/coreos/ignition v0.35.0 // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
-	github.com/gardener/gardener v1.11.3
+	github.com/gardener/gardener v1.12.1
 	github.com/go-logr/logr v0.1.0
 	github.com/gobuffalo/envy v1.9.0 // indirect
 	github.com/gobuffalo/packr v1.30.1
@@ -20,7 +20,7 @@ require (
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50 // indirect
 	go4.org v0.0.0-20200411211856-f5505b9728dd // indirect
 	k8s.io/apimachinery v0.18.10
-	k8s.io/utils v0.0.0-20201015054608-420da100c033 // indirect
+	k8s.io/utils v0.0.0-20201027101359-01387209bb0d // indirect
 	sigs.k8s.io/controller-runtime v0.6.3
 )
 

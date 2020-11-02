@@ -23,11 +23,14 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
   [plugins.cri.registry.mirrors."docker.io"]
     endpoint = ["https://mirror.gcr.io"]
 `
-
-	dockerRegistryMirrorSystemdDropin = `
-[Service]
-Environment="DOCKER_OPTS=--registry-mirror https://mirror.gcr.io"`
 )
+
+var dockerRegistryMirrorSystemdDropin = types.SystemdUnitDropIn{
+	Name: "10-registry-mirror.conf",
+	Contents: `
+[Service]
+Environment="DOCKER_OPTS=--registry-mirror https://mirror.gcr.io"`,
+}
 
 // IgnitionFromOperatingSystemConfig is responsible to transpile the gardener OperatingSystemConfig to a ignition configuration.
 // This is currently done with container-linux-config-transpile v0.9.0 and creates ignition v2.2.0 compatible configuration,
@@ -115,13 +118,8 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 		}
 	} else {
 		registryMirrorDropIn := types.SystemdUnit{
-			Name: "docker.service",
-			Dropins: []types.SystemdUnitDropIn{
-				{
-					Name:     "10-registry-mirror.conf",
-					Contents: dockerRegistryMirrorSystemdDropin,
-				},
-			},
+			Name:    "docker.service",
+			Dropins: []types.SystemdUnitDropIn{dockerRegistryMirrorSystemdDropin},
 		}
 		cfg.Systemd.Units = append(cfg.Systemd.Units, registryMirrorDropIn)
 	}

@@ -44,6 +44,19 @@ mkdir -p '{{ $unit.DropIns.Path }}'
 {{- end -}}
 {{- end }}
 
+# Change existing worker to use docker registry-mirror
+DOCKER_DROPIN_FOLDER="/etc/systemd/system/docker.service.d"
+DOCKER_DROPIN_REGISTRY_MIRROR="${DOCKER_DROPIN_FOLDER}/10-registry-mirror.conf"
+mkdir -p /etc/systemd/system/docker.service.d
+if [ ! -f "${DOCKER_DROPIN_REGISTRY_MIRROR}" ]; then
+    cat << EOF > "${DOCKER_DROPIN_REGISTRY_MIRROR}"
+[Service]
+Environment="DOCKER_OPTS=--registry-mirror https://mirror.gcr.io"
+EOF
+    systemctl daemon-reload
+    systemctl restart docker
+fi
+
 {{ if .Bootstrap -}}
 META_EP=http://100.100.100.200/latest/meta-data
 PROVIDER_ID=`curl -s $META_EP/region-id`.`curl -s $META_EP/instance-id`

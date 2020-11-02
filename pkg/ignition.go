@@ -19,8 +19,14 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 `
 	containerdConfig = `
 # created by os-extension-metal
-# This config is intentially left blank to force containerd to be started with default config
+[plugins.cri.registry.mirrors]
+  [plugins.cri.registry.mirrors."docker.io"]
+    endpoint = ["https://mirror.gcr.io"]
 `
+
+	dockerRegistryMirrorSystemdDropin = `
+[Service]
+Environment="DOCKER_OPTS=--registry-mirror https://mirror.gcr.io"`
 )
 
 // IgnitionFromOperatingSystemConfig is responsible to transpile the gardener OperatingSystemConfig to a ignition configuration.
@@ -107,6 +113,17 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 			}
 			cfg.Storage.Files = append(cfg.Storage.Files, containerdConfigFile)
 		}
+	} else {
+		registryMirrorDropIn := types.SystemdUnit{
+			Name: "docker.service",
+			Dropins: []types.SystemdUnitDropIn{
+				{
+					Name:     "10-registry-mirror.conf",
+					Contents: dockerRegistryMirrorSystemdDropin,
+				},
+			},
+		}
+		cfg.Systemd.Units = append(cfg.Systemd.Units, registryMirrorDropIn)
 	}
 
 	outCfg, report := types.Convert(cfg, "", nil)

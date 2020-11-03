@@ -39,12 +39,6 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Contents: "[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet",
 							Enable:   true,
 						},
-						{
-							Name: "docker.service",
-							Dropins: []types.SystemdUnitDropIn{
-								dockerRegistryMirrorSystemdDropin,
-							},
-						},
 					},
 				},
 			},
@@ -80,16 +74,6 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 								Inline: "testhost",
 							},
 							Mode: intPtr(0644),
-						},
-					},
-				},
-				Systemd: types.Systemd{
-					Units: []types.SystemdUnit{
-						{
-							Name: "docker.service",
-							Dropins: []types.SystemdUnitDropIn{
-								dockerRegistryMirrorSystemdDropin,
-							},
 						},
 					},
 				},

@@ -19,7 +19,9 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 `
 	containerdConfig = `
 # created by os-extension-metal
-# This config is intentially left blank to force containerd to be started with default config
+[plugins.cri.registry.mirrors]
+  [plugins.cri.registry.mirrors."docker.io"]
+    endpoint = ["https://mirror.gcr.io"]
 `
 )
 

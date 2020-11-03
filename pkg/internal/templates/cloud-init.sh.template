@@ -45,16 +45,12 @@ mkdir -p '{{ $unit.DropIns.Path }}'
 {{- end }}
 
 # Change existing worker to use docker registry-mirror
-DOCKER_DROPIN_FOLDER="/etc/systemd/system/docker.service.d"
-DOCKER_DROPIN_REGISTRY_MIRROR="${DOCKER_DROPIN_FOLDER}/10-registry-mirror.conf"
-mkdir -p /etc/systemd/system/docker.service.d
-if [ ! -f "${DOCKER_DROPIN_REGISTRY_MIRROR}" ]; then
-    cat << EOF > "${DOCKER_DROPIN_REGISTRY_MIRROR}"
-[Service]
-Environment="DOCKER_OPTS=--registry-mirror https://mirror.gcr.io"
-EOF
+file="/etc/docker/daemon.json"
+if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
+    contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
+    echo "${contents}" > ${file}
     systemctl daemon-reload
-    systemctl restart docker
+    systemctl reload docker
 fi
 
 {{ if .Bootstrap -}}

@@ -15,7 +15,7 @@
 package internal_test
 
 import (
-	"github.com/gobuffalo/packr"
+	"github.com/gobuffalo/packr/v2"
 	. "github.com/metal-stack/os-metal-extension/pkg/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

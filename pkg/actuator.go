@@ -61,5 +61,6 @@ func (a *actuator) Migrate(ctx context.Context, config *extensionsv1alpha1.Opera
 	return a.migrate(ctx, config)
 }
 func (a *actuator) Restore(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, error) {
+	// FIXME should we call restore here
 	return a.reconcile(ctx, config)
 }

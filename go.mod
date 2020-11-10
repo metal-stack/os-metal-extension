@@ -8,10 +8,8 @@ require (
 	github.com/coreos/container-linux-config-transpiler v0.9.0
 	github.com/coreos/ignition v0.35.0 // indirect
 	github.com/docker/spdystream v0.0.0-20181023171402-6480d4af844c // indirect
-	github.com/gardener/gardener v1.12.1
+	github.com/gardener/gardener v1.12.6
 	github.com/go-logr/logr v0.1.0
-	github.com/gobuffalo/envy v1.9.0 // indirect
-	github.com/gobuffalo/packr v1.30.1
 	github.com/gobuffalo/packr/v2 v2.8.0
 	github.com/google/go-cmp v0.4.1 // indirect
 	github.com/onsi/ginkgo v1.14.2

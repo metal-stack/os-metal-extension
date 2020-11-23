@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REGISTRY                    := gcr.io
+REGISTRY                    := ghcr.io
 IMAGE_PREFIX                := $(REGISTRY)/metal-stack
 IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))

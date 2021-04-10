@@ -20,7 +20,6 @@ DIRNAME="$(echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 cd "$DIRNAME/../tools"
 export GO111MODULE=on
 echo "Installing requirements"
-go install "github.com/gobuffalo/packr/v2/packr2"
 go install "github.com/onsi/ginkgo/ginkgo"
 go install "github.com/golang/mock/mockgen"
 go install "github.com/golangci/golangci-lint/cmd/golangci-lint"
@@ -43,4 +42,3 @@ $ export PATH=/usr/local/opt/coreutils/libexec/gnubin:\$PATH
 
 EOM
 fi
-

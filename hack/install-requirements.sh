@@ -20,8 +20,7 @@ DIRNAME="$(echo "$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd
 cd "$DIRNAME/../tools"
 export GO111MODULE=on
 echo "Installing requirements"
-go install "github.com/onsi/ginkgo/ginkgo"
-curl -s "https://raw.githubusercontent.com/helm/helm/v2.16.10/scripts/get" | bash -s -- --version 'v2.13.1'
+curl -s "https://raw.githubusercontent.com/helm/helm/v2.17.0/scripts/get" | bash -s -- --version 'v2.17.0'
 
 if [[ "$(uname -s)" == *"Darwin"* ]]; then
   cat <<EOM

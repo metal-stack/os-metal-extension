@@ -12,7 +12,7 @@ require (
 	github.com/go-logr/logr v0.1.0
 	github.com/google/go-cmp v0.5.0 // indirect
 	github.com/kr/text v0.2.0 // indirect
-	github.com/onsi/ginkgo v1.16.1
+	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.11.0
 	github.com/sirupsen/logrus v1.8.1 // indirect
 	github.com/spf13/cobra v1.1.3

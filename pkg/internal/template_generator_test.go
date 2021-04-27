@@ -15,7 +15,6 @@
 package internal_test
 
 import (
-	"github.com/gobuffalo/packr"
 	. "github.com/metal-stack/os-metal-extension/pkg/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -27,14 +26,6 @@ var (
 
 var _ = Describe("#TemplateBashGenerator", func() {
 	var ExpectedCloudInit []byte
-
-	BeforeSuite(func() {
-		box := packr.NewBox("./testfiles")
-		var err error
-
-		ExpectedCloudInit, err = box.Find("cloud-init.sh")
-		Expect(err).NotTo(HaveOccurred())
-	})
 
 	It("should render correctly", func() {
 		gen := NewCloudInitGenerator(DefaultUnitsPath)

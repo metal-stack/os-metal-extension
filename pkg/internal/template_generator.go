@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//go:generate packr2
-
 package internal
 
 import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/gobuffalo/packr/v2"
-	"k8s.io/apimachinery/pkg/util/runtime"
 	"path"
 	"text/template"
+
+	"github.com/metal-stack/os-metal-extension/pkg/internal/templates"
+	"k8s.io/apimachinery/pkg/util/runtime"
 )
 
 var cloudInitTemplate *template.Template
@@ -32,12 +31,8 @@ var cloudInitTemplate *template.Template
 const DefaultUnitsPath = "/etc/systemd/system"
 
 func init() {
-	box := packr.New("templates", "./templates")
-
-	cloudInitTemplateString, err := box.FindString("cloud-init.sh.template")
-	runtime.Must(err)
-
-	cloudInitTemplate, err = template.New("cloud-init.sh").Parse(cloudInitTemplateString)
+	var err error
+	cloudInitTemplate, err = template.New("cloud-init.sh").Parse(templates.CloudInitTemplate)
 	runtime.Must(err)
 }
 

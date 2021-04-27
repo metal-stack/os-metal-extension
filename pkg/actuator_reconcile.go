@@ -17,6 +17,7 @@ package pkg
 import (
 	"context"
 	"fmt"
+
 	oscommon "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/metal-stack/os-metal-extension/pkg/internal"
@@ -33,7 +34,7 @@ func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 		data, err = a.cloudConfigFromOperatingSystemConfig(ctx, config)
 	}
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("could not generate cloud config: %v", err)
+		return nil, nil, nil, fmt.Errorf("could not generate cloud config: %w", err)
 	}
 
 	// if ReloadConfigFilePath is given, this is executed to actually reload the written config

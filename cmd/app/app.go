@@ -77,7 +77,7 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 				controllercmd.LogErrAndExit(err, "Could not add controller to manager")
 			}
 
-			if err := mgr.Start(ctx.Done()); err != nil {
+			if err := mgr.Start(ctx); err != nil {
 				controllercmd.LogErrAndExit(err, "Error running manager")
 			}
 		},

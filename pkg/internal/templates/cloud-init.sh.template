@@ -44,11 +44,25 @@ mkdir -p '{{ $unit.DropIns.Path }}'
 {{- end -}}
 {{- end }}
 
+# Adjust docker config
+dockerreload=false
+file="./daemontest.json"
+
 # Change existing worker to use docker registry-mirror
-file="/etc/docker/daemon.json"
 if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
     contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
     echo "${contents}" > ${file}
+    dockerreload=true
+fi
+
+# Remove logrotation from docker due to conflict with gardener's log rotation
+if [ $(jq -r 'has("log-opts")' "${file}") == "true" ]; then
+    contents=$(jq 'del(."log-opts")' ${file})
+    echo "${contents}" > ${file}
+    dockerreload=true
+fi
+
+if [ $dockerreload == true ]; then
     systemctl daemon-reload
     systemctl reload docker
 fi

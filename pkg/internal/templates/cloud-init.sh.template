@@ -57,7 +57,7 @@ fi
 
 # Change existing worker to use docker registry-mirror
 if [ $(jq -r 'has("live-restore")' "${file}") == "false" ]; then
-    contents=$(jq -M '. += {"live-reload": true}' ${file})
+    contents=$(jq -M '. += {"live-restore": true}' ${file})
     echo "${contents}" > ${file}
     dockerreload=true
 fi

@@ -46,11 +46,23 @@ mkdir -p '{{ $unit.DropIns.Path }}'
 
 # Adjust docker config
 file="/etc/docker/daemon.json"
+dockerreload=false
 
 # Change existing worker to use docker registry-mirror
 if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
     contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
     echo "${contents}" > ${file}
+    dockerreload=true
+fi
+
+# Change existing worker to use docker registry-mirror
+if [ $(jq -r 'has("live-restore")' "${file}") == "false" ]; then
+    contents=$(jq -M '. += {"live-reload": true}' ${file})
+    echo "${contents}" > ${file}
+    dockerreload=true
+fi
+
+if [ $dockerreload == true ]; then
     systemctl daemon-reload
     systemctl reload docker
 fi
@@ -60,7 +72,8 @@ if [ $(jq -r 'has("log-opts")' "${file}") == "true" ]; then
     contents=$(jq 'del(."log-opts")' ${file})
     echo "${contents}" > ${file}
     systemctl daemon-reload
-    systemctl reload docker
+    # We need to restart docker because reloading it can not change logging configuration.
+    systemctl restart docker
 fi
 
 {{ if .Bootstrap -}}

@@ -18,7 +18,7 @@ IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
 REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 HACK_DIR                    := $(REPO_ROOT)/hack
 HOSTNAME                    := $(shell hostname)
-VERSION                     := $(shell bash -c 'source $(HACK_DIR)/common.sh && echo $$VERSION')
+VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
 LD_FLAGS                    := "-X 'github.com/metal-pod/v.Version=$(VERSION)' \
 								-X 'github.com/metal-pod/v.Revision=$(GITVERSION)' \
 								-X 'github.com/metal-pod/v.GitSHA1=$(SHA)' \
@@ -32,46 +32,36 @@ export GO111MODULE := on
 
 ### Build commands
 
-.PHONY: format
-format:
-	@./hack/format.sh
+
+.PHONY: all
+all:
+	go build -trimpath -tags netgo -o os-metal cmd/main.go
+	strip os-metal
 
 .PHONY: clean
 clean:
-	@./hack/clean.sh
 	rm os-metal
+
+.PHONY: revendor
+revendor:
+	go mod vendor
+	go mod tidy
+	chmod +x vendor/github.com/gardener/gardener/hack/*.sh
 
 .PHONY: generate
 generate:
-	@./hack/generate.sh
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate.sh ./charts/... ./cmd/... ./pkg/...
 
 .PHONE: generate-in-docker
 generate-in-docker:
 	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:1.16 \
 		sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
-				&& ./hack/install-requirements.sh \
-				&& make generate \
+				&& make revendor install-requirements generate \
 				&& chown -R $(shell id -u):$(shell id -g) ."
 
-.PHONY: check
-check:
-	@./hack/check.sh
-
-.PHONY: test
-test:
-	@./hack/test.sh
-
-.PHONY: verify
-verify: check generate test format
-
-.PHONY: install
-install:
-	@./hack/install.sh
-
-.PHONY: all
-all: generate
-	go build -trimpath -tags netgo -o os-metal cmd/main.go
-	strip os-metal
+.PHONY: install-requirements
+install-requirements:
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install-requirements.sh
 
 .PHONY: docker-image
 docker-image:

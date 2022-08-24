@@ -11,6 +11,12 @@ cat << EOF | base64 -d > '{{ .Path }}'
 EOF
 {{- end -}}
 
+{{- define "put-content-unencoded" -}}
+cat << EOF > '{{ .Path }}'
+{{ .Content }}
+EOF
+{{- end -}}
+
 {{- if .Bootstrap }}
 #Disable upgrade related services
 systemctl disable locksmithd
@@ -26,7 +32,11 @@ sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd
 
 {{ range $_, $file := .Files -}}
 mkdir -p '{{ $file.Dirname }}'
+{{ if $file.TransmitUnencoded -}}
+{{ template "put-content-unencoded" $file }}
+{{- else -}}
 {{ template "put-content" $file }}
+{{- end }}
 {{- if $file.Permissions }}
 chmod '{{ $file.Permissions }}' '{{ $file.Path }}'
 {{ end }}

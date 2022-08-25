@@ -33,7 +33,11 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 // Therefore we must update ignition to 2.0.0 in the images and transform the gardener config to the ignition config types instead.
 func IgnitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) ([]byte, error) {
 	fmt.Println("DEBUG")
-	fmt.Println(json.MarshalIndent(config, "", "   "))
+	cm, err := json.MarshalIndent(config, "", "   ")
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(string(cm))
 
 	cfg := types.Config{}
 	cfg.Systemd = types.Systemd{}

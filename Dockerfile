@@ -1,7 +1,7 @@
 FROM golang:1.19 AS builder
 WORKDIR /work
 COPY . .
-RUN make
+RUN make all
 
 FROM alpine:3.16 AS base
 WORKDIR /

@@ -46,7 +46,7 @@ clean:
 	rm os-metal
 
 .PHONY: install
-install: revendor $(HELM)
+install: revendor $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
 	@LD_FLAGS="-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(VERSION)" \
 	$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install.sh ./...
 

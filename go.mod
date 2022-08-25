@@ -6,13 +6,14 @@ require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0
 	github.com/coreos/container-linux-config-transpiler v0.9.0
 	github.com/gardener/gardener v1.39.0
-	github.com/go-logr/logr v0.4.0
 	github.com/golang/mock v1.6.0
 	github.com/onsi/ginkgo v1.16.5
-	github.com/onsi/gomega v1.19.0
 	github.com/spf13/cobra v1.5.0
+	k8s.io/api v0.22.2
 	k8s.io/apimachinery v0.22.2
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	k8s.io/code-generator v0.22.2
+	k8s.io/component-base v0.22.2
 	sigs.k8s.io/controller-runtime v0.10.2
 )
 
@@ -42,6 +43,7 @@ require (
 	github.com/gardener/external-dns-management v0.7.18 // indirect
 	github.com/gardener/hvpa-controller v0.3.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
+	github.com/go-logr/logr v0.4.0 // indirect
 	github.com/go-logr/zapr v0.4.0 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
@@ -74,6 +76,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.1 // indirect
 	github.com/nxadm/tail v1.4.8 // indirect
+	github.com/onsi/gomega v1.19.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.11.0 // indirect
 	github.com/prometheus/client_model v0.2.0 // indirect
@@ -108,12 +111,9 @@ require (
 	istio.io/api v0.0.0-20211118170605-3f0f902cdfd1 // indirect
 	istio.io/client-go v1.12.0 // indirect
 	istio.io/gogo-genproto v0.0.0-20210113155706-4daf5697332f // indirect
-	k8s.io/api v0.22.2 // indirect
 	k8s.io/apiextensions-apiserver v0.22.2 // indirect
 	k8s.io/apiserver v0.22.2 // indirect
 	k8s.io/autoscaler v0.0.0-20190805135949-100e91ba756e // indirect
-	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible // indirect
-	k8s.io/component-base v0.22.2 // indirect
 	k8s.io/gengo v0.0.0-20201214224949-b6c5ce23f027 // indirect
 	k8s.io/helm v2.16.1+incompatible // indirect
 	k8s.io/klog v1.0.0 // indirect

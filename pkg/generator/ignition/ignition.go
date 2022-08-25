@@ -1,4 +1,4 @@
-package pkg
+package ignition
 
 import (
 	"context"

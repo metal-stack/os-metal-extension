@@ -16,6 +16,15 @@ type IgnitionGenerator struct {
 	additionalValuesFunc func(*extensionsv1alpha1.OperatingSystemConfig) (map[string]interface{}, error)
 }
 
+// NewIgnitionGenerator creates a new CloudInitGenerator with the given units path.
+func NewIgnitionGenerator(template *template.Template, unitsPath string, cmd string, additionalValuesFunc func(*extensionsv1alpha1.OperatingSystemConfig) (map[string]interface{}, error)) *IgnitionGenerator {
+	return &IgnitionGenerator{
+		cloudInitGenerator:   ostemplate.NewCloudInitGenerator(template, unitsPath, cmd, additionalValuesFunc),
+		cmd:                  cmd,
+		additionalValuesFunc: additionalValuesFunc,
+	}
+}
+
 // Generate generates an ignition script from the given OperatingSystemConfig.
 func (t *IgnitionGenerator) Generate(data *generator.OperatingSystemConfig) ([]byte, *string, error) {
 	var cmd *string
@@ -30,13 +39,4 @@ func (t *IgnitionGenerator) Generate(data *generator.OperatingSystemConfig) ([]b
 	}
 
 	return t.cloudInitGenerator.Generate(data)
-}
-
-// NewIgnitionGenerator creates a new CloudInitGenerator with the given units path.
-func NewIgnitionGenerator(template *template.Template, unitsPath string, cmd string, additionalValuesFunc func(*extensionsv1alpha1.OperatingSystemConfig) (map[string]interface{}, error)) *IgnitionGenerator {
-	return &IgnitionGenerator{
-		cloudInitGenerator:   ostemplate.NewCloudInitGenerator(template, unitsPath, cmd, additionalValuesFunc),
-		cmd:                  cmd,
-		additionalValuesFunc: additionalValuesFunc,
-	}
 }

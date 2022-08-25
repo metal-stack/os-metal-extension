@@ -15,6 +15,7 @@
 package internal_test
 
 import (
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	. "github.com/metal-stack/os-metal-extension/pkg/internal"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -30,8 +31,8 @@ var _ = Describe("#TemplateBashGenerator", func() {
 	It("should render correctly", func() {
 		gen := NewCloudInitGenerator(DefaultUnitsPath)
 
-		cloudInit, err := gen.Generate(&OperatingSystemConfig{
-			Files: []*File{
+		cloudInit, err := gen.Generate(&generator.OperatingSystemConfig{
+			Files: []*generator.File{
 				{
 					Path:        "/foo",
 					Content:     []byte("bar"),
@@ -39,11 +40,11 @@ var _ = Describe("#TemplateBashGenerator", func() {
 				},
 			},
 
-			Units: []*Unit{
+			Units: []*generator.Unit{
 				{
 					Name:    "docker.service",
 					Content: []byte("unit"),
-					DropIns: []*DropIn{
+					DropIns: []*generator.DropIn{
 						{
 							Name:    "10-docker-opts.conf",
 							Content: []byte("override"),

@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	oscommon "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/metal-stack/os-metal-extension/pkg/internal"
 )
@@ -49,44 +50,48 @@ func (a *actuator) reconcile(ctx context.Context, config *extensionsv1alpha1.Ope
 
 // config is brought from Gardener
 func (a *actuator) cloudConfigFromOperatingSystemConfig(ctx context.Context, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
-	files := make([]*internal.File, 0, len(config.Spec.Files))
+	files := make([]*generator.File, 0, len(config.Spec.Files))
 	for _, file := range config.Spec.Files {
 		data, err := oscommon.DataForFileContent(ctx, a.client, config.Namespace, &file.Content)
 		if err != nil {
 			return nil, err
 		}
 
-		files = append(files, &internal.File{Path: file.Path, Content: data, Permissions: file.Permissions})
+		files = append(files, &generator.File{Path: file.Path, Content: data, Permissions: file.Permissions, TransmitUnencoded: file.Content.TransmitUnencoded})
 	}
 
 	// blacklist sctp kernel module
 	if config.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeReconcile {
 		files = append(files,
-			&internal.File{
+			&generator.File{
 				Path:    "/etc/modprobe.d/sctp.conf",
 				Content: []byte("install sctp /bin/true"),
 			})
 	}
 
-	units := make([]*internal.Unit, 0, len(config.Spec.Units))
+	units := make([]*generator.Unit, 0, len(config.Spec.Units))
 	for _, unit := range config.Spec.Units {
 		var content []byte
 		if unit.Content != nil {
 			content = []byte(*unit.Content)
 		}
 
-		dropIns := make([]*internal.DropIn, 0, len(unit.DropIns))
+		dropIns := make([]*generator.DropIn, 0, len(unit.DropIns))
 		for _, dropIn := range unit.DropIns {
-			dropIns = append(dropIns, &internal.DropIn{Name: dropIn.Name, Content: []byte(dropIn.Content)})
+			dropIns = append(dropIns, &generator.DropIn{Name: dropIn.Name, Content: []byte(dropIn.Content)})
 		}
-		units = append(units, &internal.Unit{Name: unit.Name, Content: content, DropIns: dropIns})
+		units = append(units, &generator.Unit{Name: unit.Name, Content: content, DropIns: dropIns})
 	}
 
 	return internal.NewCloudInitGenerator(internal.DefaultUnitsPath).
-		Generate(&internal.OperatingSystemConfig{
-			Bootstrap: config.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision,
+		Generate(&generator.OperatingSystemConfig{
+			// TODO: do we need to pass any of these?
+			// Object:    &extensionsv1alpha1.OperatingSystemConfig{},
+			// CRI:       &extensionsv1alpha1.CRIConfig{},
+			// Path:      new(string),
 			Files:     files,
 			Units:     units,
+			Bootstrap: config.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision,
 		})
 }
 

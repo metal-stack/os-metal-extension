@@ -21,6 +21,9 @@ import (
 	"path"
 	"text/template"
 
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
+
+	"github.com/gardener/gardener/pkg/utils"
 	"github.com/metal-stack/os-metal-extension/pkg/internal/templates"
 	"k8s.io/apimachinery/pkg/util/runtime"
 )
@@ -37,10 +40,11 @@ func init() {
 }
 
 type fileData struct {
-	Path        string
-	Content     string
-	Dirname     string
-	Permissions *string
+	Path              string
+	Content           string
+	Dirname           string
+	Permissions       *string
+	TransmitUnencoded *bool
 }
 
 type unitData struct {
@@ -76,13 +80,18 @@ func b64(data []byte) string {
 }
 
 // Generate generates a cloud-init script from the given OperatingSystemConfig.
-func (t *CloudInitGenerator) Generate(data *OperatingSystemConfig) ([]byte, error) {
+func (t *CloudInitGenerator) Generate(data *generator.OperatingSystemConfig) ([]byte, error) {
 	var tFiles []*fileData
 	for _, file := range data.Files {
 		tFile := &fileData{
-			Path:    file.Path,
-			Content: b64(file.Content),
-			Dirname: path.Dir(file.Path),
+			Path:              file.Path,
+			Dirname:           path.Dir(file.Path),
+			TransmitUnencoded: file.TransmitUnencoded,
+		}
+		if file.TransmitUnencoded != nil && *file.TransmitUnencoded {
+			tFile.Content = string(file.Content)
+		} else {
+			tFile.Content = utils.EncodeBase64(file.Content)
 		}
 		if file.Permissions != nil {
 			permissions := fmt.Sprintf("%04o", *file.Permissions)

@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/coreos/container-linux-config-transpiler/config/types"
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils"
 )
@@ -30,36 +31,28 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 // Starting with ignition 2.0, ignition itself contains the required parsing logic, so we can use ignition directly.
 // see https://github.com/coreos/ignition/blob/master/config/config.go#L38
 // Therefore we must update ignition to 2.0.0 in the images and transform the gardener config to the ignition config types instead.
-func IgnitionFromOperatingSystemConfig(config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
+func IgnitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) ([]byte, error) {
 	cfg := types.Config{}
 	cfg.Systemd = types.Systemd{}
-	for _, u := range config.Spec.Units {
-		var contents string
-		if u.Content != nil {
-			contents = *u.Content
-		}
-
-		var enable bool
-		if u.Enable != nil {
-			enable = *u.Enable
-		}
+	for _, u := range config.Units {
+		contents := string(u.Content)
 
 		unit := types.SystemdUnit{
 			Contents: contents,
 			Name:     u.Name,
-			Enable:   enable,
+			Enable:   true,
 		}
 		for _, dr := range u.DropIns {
 			unit.Dropins = append(unit.Dropins, types.SystemdUnitDropIn{
 				Name:     dr.Name,
-				Contents: dr.Content,
+				Contents: string(dr.Content),
 			})
 		}
 		cfg.Systemd.Units = append(cfg.Systemd.Units, unit)
 	}
 
 	cfg.Storage = types.Storage{}
-	for _, f := range config.Spec.Files {
+	for _, f := range config.Files {
 		var mode *int
 		if f.Permissions != nil {
 			m := int(*f.Permissions)
@@ -67,10 +60,10 @@ func IgnitionFromOperatingSystemConfig(config *extensionsv1alpha1.OperatingSyste
 		}
 
 		var inline string
-		if f.Content.TransmitUnencoded != nil && *f.Content.TransmitUnencoded {
-			inline = string(f.Content.Inline.Data)
+		if f.TransmitUnencoded != nil && *f.TransmitUnencoded {
+			inline = string(f.Content)
 		} else {
-			inline = utils.EncodeBase64([]byte(f.Content.Inline.Data))
+			inline = utils.EncodeBase64([]byte(f.Content))
 		}
 
 		ignitionFile := types.File{
@@ -84,8 +77,8 @@ func IgnitionFromOperatingSystemConfig(config *extensionsv1alpha1.OperatingSyste
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)
 	}
 
-	if config.Spec.CRIConfig != nil {
-		cri := config.Spec.CRIConfig
+	if config.CRI != nil {
+		cri := config.CRI
 		if cri.Name == extensionsv1alpha1.CRINameContainerD {
 
 			containerdSystemdService := types.SystemdUnit{

@@ -66,7 +66,7 @@ func (t *IgnitionGenerator) Generate(data *generator.OperatingSystemConfig) ([]b
 	}
 
 	if data.Object.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
-		data, err := IgnitionFromOperatingSystemConfig(data.Object)
+		data, err := IgnitionFromOperatingSystemConfig(data)
 		return data, cmd, err
 	}
 

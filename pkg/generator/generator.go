@@ -40,7 +40,7 @@ func init() {
 
 	cloudInitTemplate, err := ostemplate.NewTemplate("cloud-init").Parse(string(cloudInitTemplateString))
 	runtime.Must(err)
-	ignitionGenerator = ignition.NewIgnitionGenerator(cloudInitTemplate, ostemplate.DefaultUnitsPath, cmd, additionalValues)
+	ignitionGenerator = ignition.New(cloudInitTemplate, ostemplate.DefaultUnitsPath, cmd, additionalValues)
 }
 
 // IgnitionGenerator is the generator which will genereta the cloud init yaml

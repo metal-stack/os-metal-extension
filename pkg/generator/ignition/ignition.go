@@ -1,14 +1,12 @@
 package ignition
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 
 	"github.com/coreos/container-linux-config-transpiler/config/types"
-	oscommon "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	"github.com/gardener/gardener/pkg/utils"
 )
 
 const (
@@ -32,7 +30,7 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 // Starting with ignition 2.0, ignition itself contains the required parsing logic, so we can use ignition directly.
 // see https://github.com/coreos/ignition/blob/master/config/config.go#L38
 // Therefore we must update ignition to 2.0.0 in the images and transform the gardener config to the ignition config types instead.
-func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
+func IgnitionFromOperatingSystemConfig(config *extensionsv1alpha1.OperatingSystemConfig) ([]byte, error) {
 	cfg := types.Config{}
 	cfg.Systemd = types.Systemd{}
 	for _, u := range config.Spec.Units {
@@ -62,15 +60,17 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 
 	cfg.Storage = types.Storage{}
 	for _, f := range config.Spec.Files {
-		content, err := oscommon.DataForFileContent(ctx, c, config.Namespace, &f.Content)
-		if err != nil {
-			return nil, err
-		}
-
 		var mode *int
 		if f.Permissions != nil {
 			m := int(*f.Permissions)
 			mode = &m
+		}
+
+		var inline string
+		if f.Content.TransmitUnencoded != nil && *f.Content.TransmitUnencoded {
+			inline = string(f.Content.Inline.Data)
+		} else {
+			inline = utils.EncodeBase64([]byte(f.Content.Inline.Data))
 		}
 
 		ignitionFile := types.File{
@@ -78,7 +78,7 @@ func IgnitionFromOperatingSystemConfig(ctx context.Context, c client.Client, con
 			Filesystem: "root",
 			Mode:       mode,
 			Contents: types.FileContents{
-				Inline: string(content),
+				Inline: inline,
 			},
 		}
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)

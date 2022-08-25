@@ -2,7 +2,6 @@ package ignition
 
 import (
 	"bytes"
-	"context"
 	"fmt"
 	"path"
 	"text/template"
@@ -67,7 +66,7 @@ func (t *IgnitionGenerator) Generate(data *generator.OperatingSystemConfig) ([]b
 	}
 
 	if data.Object.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
-		data, err := IgnitionFromOperatingSystemConfig(context.Background(), nil, data.Object)
+		data, err := IgnitionFromOperatingSystemConfig(data.Object)
 		return data, cmd, err
 	}
 

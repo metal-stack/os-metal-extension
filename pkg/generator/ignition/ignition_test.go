@@ -1,7 +1,6 @@
 package ignition
 
 import (
-	"context"
 	"encoding/json"
 	"reflect"
 	"testing"
@@ -122,7 +121,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := IgnitionFromOperatingSystemConfig(context.Background(), nil, tt.config)
+			got, err := IgnitionFromOperatingSystemConfig(tt.config)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("IgnitionFromOperatingSystemConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return

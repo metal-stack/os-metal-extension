@@ -68,9 +68,13 @@ func IgnitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 
 		var inline string
 		if f.TransmitUnencoded != nil && *f.TransmitUnencoded {
-			inline = string(f.Content)
+			decoded, err := utils.DecodeBase64(string(f.Content))
+			if err != nil {
+				return nil, err
+			}
+			inline = string(decoded)
 		} else {
-			inline = utils.EncodeBase64([]byte(f.Content))
+			inline = string(f.Content)
 		}
 
 		ignitionFile := types.File{

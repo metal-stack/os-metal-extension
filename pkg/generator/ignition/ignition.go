@@ -7,7 +7,6 @@ import (
 	"github.com/coreos/container-linux-config-transpiler/config/types"
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/utils"
 )
 
 const (
@@ -66,23 +65,12 @@ func IgnitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 			mode = &m
 		}
 
-		var inline string
-		if f.TransmitUnencoded != nil && *f.TransmitUnencoded {
-			decoded, err := utils.DecodeBase64(string(f.Content))
-			if err != nil {
-				return nil, err
-			}
-			inline = string(decoded)
-		} else {
-			inline = string(f.Content)
-		}
-
 		ignitionFile := types.File{
 			Path:       f.Path,
 			Filesystem: "root",
 			Mode:       mode,
 			Contents: types.FileContents{
-				Inline: inline,
+				Inline: string(f.Content),
 			},
 		}
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)

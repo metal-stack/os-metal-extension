@@ -1,4 +1,5 @@
-FROM golang:1.19 AS builder
+FROM golang:1.19-alpine3.16 AS builder
+RUN apk add make git gcc musl-dev
 WORKDIR /work
 COPY . .
 RUN make all

@@ -35,7 +35,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 						{
 							Name:     "kubelet.service",
 							Contents: "[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet",
-							Enable:   true,
+							Enabled:  pointer.BoolPtr(true),
 						},
 					},
 				},
@@ -112,9 +112,9 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := IgnitionFromOperatingSystemConfig(tt.config)
+			got, err := ignitionFromOperatingSystemConfig(tt.config)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("IgnitionFromOperatingSystemConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ignitionFromOperatingSystemConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -124,7 +124,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 				t.Error(err)
 			}
 			if !reflect.DeepEqual(got, want) {
-				t.Errorf("IgnitionFromOperatingSystemConfig()\ngot:\n%v\nwant:\n %v", string(got), string(want))
+				t.Errorf("ignitionFromOperatingSystemConfig()\ngot:\n%v\nwant:\n%v", string(got), string(want))
 			}
 		})
 	}

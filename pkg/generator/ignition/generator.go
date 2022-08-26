@@ -41,19 +41,19 @@ func New(template *template.Template, unitsPath string, cmd string, additionalVa
 }
 
 // Generate generates an ignition script from the given OperatingSystemConfig.
-func (t *IgnitionGenerator) Generate(data *generator.OperatingSystemConfig) ([]byte, *string, error) {
+func (t *IgnitionGenerator) Generate(config *generator.OperatingSystemConfig) ([]byte, *string, error) {
+	if config.Object.Spec.Purpose != extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
+		return t.cloudInitGenerator.Generate(config)
+	}
+
 	var cmd *string
-	if data.Path != nil {
-		c := fmt.Sprintf(t.cmd, *data.Path)
+	if config.Path != nil {
+		c := fmt.Sprintf(t.cmd, *config.Path)
 		cmd = &c
 	}
 
-	if data.Object.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
-		data, err := ignitionFromOperatingSystemConfig(data)
-		return data, cmd, err
-	}
-
-	return t.cloudInitGenerator.Generate(data)
+	data, err := ignitionFromOperatingSystemConfig(config)
+	return data, cmd, err
 }
 
 // ignitionFromOperatingSystemConfig is responsible to transpile the gardener OperatingSystemConfig to a ignition configuration.

@@ -16,34 +16,56 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"os"
 
-	"github.com/gardener/gardener/extensions/pkg/controller"
+	extcontroller "github.com/gardener/gardener/extensions/pkg/controller"
+	corev1 "k8s.io/api/core/v1"
+	componentbaseconfig "k8s.io/component-base/config"
+
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
-	"github.com/metal-stack/os-metal-extension/pkg"
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon"
+	oscommoncmd "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/cmd"
+	"github.com/gardener/gardener/extensions/pkg/util"
+	"github.com/metal-stack/os-metal-extension/pkg/generator"
 	"github.com/spf13/cobra"
+	"k8s.io/client-go/tools/leaderelection/resourcelock"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
-// Name is the name of the OS Metal controller.
-const Name = "os-metal"
+const ctrlName = "os-metal"
 
-// NewControllerCommand creates a new command for running a OS Metal controller.
+var osTypes = []string{"ubuntu", "debian"}
+
+// NewControllerCommand returns a new Command with a new Generator
 func NewControllerCommand(ctx context.Context) *cobra.Command {
+	g := generator.IgnitionGenerator()
+	if g == nil {
+		runtimelog.Log.Error(fmt.Errorf("generator is nil"), "Error executing the main controller command")
+		os.Exit(1)
+	}
+
 	var (
-		restOpts = &controllercmd.RESTOptions{}
-		mgrOpts  = &controllercmd.ManagerOptions{
-			LeaderElection:          true,
-			LeaderElectionID:        controllercmd.LeaderElectionNameID(Name),
-			LeaderElectionNamespace: os.Getenv("LEADER_ELECTION_NAMESPACE"),
+		generalOpts = &controllercmd.GeneralOptions{}
+		restOpts    = &controllercmd.RESTOptions{}
+		mgrOpts     = &controllercmd.ManagerOptions{
+			LeaderElection:             true,
+			LeaderElectionResourceLock: resourcelock.LeasesResourceLock,
+			LeaderElectionID:           controllercmd.LeaderElectionNameID(ctrlName),
+			LeaderElectionNamespace:    os.Getenv("LEADER_ELECTION_NAMESPACE"),
 		}
 		ctrlOpts = &controllercmd.ControllerOptions{
 			MaxConcurrentReconciles: 5,
 		}
-		reconcileOpts      = &controllercmd.ReconcilerOptions{}
-		controllerSwitches = pkg.ControllerSwitchOptions()
+
+		reconcileOpts = &controllercmd.ReconcilerOptions{}
+
+		controllerSwitches = oscommoncmd.SwitchOptions(ctrlName, osTypes, g)
 
 		aggOption = controllercmd.NewOptionAggregator(
+			generalOpts,
 			restOpts,
 			mgrOpts,
 			ctrlOpts,
@@ -53,35 +75,50 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 	)
 
 	cmd := &cobra.Command{
-		Use: "os-metal-controller-manager",
+		Use: ctrlName + "-controller-manager",
 
-		Run: func(cmd *cobra.Command, args []string) {
+		RunE: func(cmd *cobra.Command, args []string) error {
 			if err := aggOption.Complete(); err != nil {
-				controllercmd.LogErrAndExit(err, "Error completing options")
+				return fmt.Errorf("error completing options: %w", err)
 			}
 
-			mgr, err := manager.New(restOpts.Completed().Config, mgrOpts.Completed().Options())
+			// TODO: Make these flags configurable via command line parameters or component config file.
+			util.ApplyClientConnectionConfigurationToRESTConfig(&componentbaseconfig.ClientConnectionConfiguration{
+				QPS:   100.0,
+				Burst: 130,
+			}, restOpts.Completed().Config)
+
+			completedMgrOpts := mgrOpts.Completed().Options()
+			completedMgrOpts.ClientDisableCacheFor = []client.Object{
+				&corev1.Secret{}, // applied for OperatingSystemConfig Secret references
+			}
+
+			mgr, err := manager.New(restOpts.Completed().Config, completedMgrOpts)
 			if err != nil {
-				controllercmd.LogErrAndExit(err, "Could not instantiate manager")
+				return fmt.Errorf("could not instantiate manager: %w", err)
 			}
 
-			if err := controller.AddToScheme(mgr.GetScheme()); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not update manager scheme")
+			if err := extcontroller.AddToScheme(mgr.GetScheme()); err != nil {
+				return fmt.Errorf("could not update manager scheme: %w", err)
 			}
 
-			ctrlOpts.Completed().Apply(&pkg.DefaultAddOptions.Controller)
+			ctrlOpts.Completed().Apply(&oscommon.DefaultAddOptions.Controller)
 
-			reconcileOpts.Completed().Apply(&pkg.DefaultAddOptions.IgnoreOperationAnnotation)
+			reconcileOpts.Completed().Apply(&oscommon.DefaultAddOptions.IgnoreOperationAnnotation)
 
-			if err := pkg.AddToManager(mgr); err != nil {
-				controllercmd.LogErrAndExit(err, "Could not add controller to manager")
+			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
+				return fmt.Errorf("could not add controller to manager: %w", err)
 			}
 
 			if err := mgr.Start(ctx); err != nil {
-				controllercmd.LogErrAndExit(err, "Error running manager")
+				return fmt.Errorf("error running manager: %w", err)
 			}
+
+			return nil
 		},
 	}
+
 	aggOption.AddFlags(cmd.Flags())
+
 	return cmd
 }

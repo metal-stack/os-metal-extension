@@ -27,11 +27,14 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-export CGO_ENABLED := 0
-export GO111MODULE := on
+CGO_ENABLED := 0
+GO111MODULE := on
+GOLANGCI_LINT_VERSION := v1.48.0
 
 ### Build commands
 
+TOOLS_DIR := hack/tools
+-include vendor/github.com/gardener/gardener/hack/tools.mk
 
 .PHONY: all
 all:
@@ -41,6 +44,11 @@ all:
 .PHONY: clean
 clean:
 	rm os-metal
+
+.PHONY: install
+install: revendor $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
+	@LD_FLAGS="-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(VERSION)" \
+	$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install.sh ./...
 
 .PHONY: revendor
 revendor:
@@ -54,14 +62,10 @@ generate:
 
 .PHONE: generate-in-docker
 generate-in-docker:
-	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:1.16 \
+	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:1.19 \
 		sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
-				&& make revendor install-requirements generate \
+				&& make revendor install generate \
 				&& chown -R $(shell id -u):$(shell id -g) ."
-
-.PHONY: install-requirements
-install-requirements:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install-requirements.sh
 
 .PHONY: docker-image
 docker-image:

@@ -2,3 +2,4 @@
 .vscode/
 os-metal
 vendor
+hack/tools/bin/*

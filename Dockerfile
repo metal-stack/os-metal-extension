@@ -1,12 +1,10 @@
-#############      builder-base                             #############
-FROM golang:1.16 AS builder
+FROM golang:1.19-alpine3.16 AS builder
+RUN apk add make git gcc musl-dev
 WORKDIR /work
 COPY . .
-# RUN go mod download
-RUN make
+RUN make all
 
-#############      base                                     #############
-FROM alpine:3.14 AS base
+FROM alpine:3.16 AS base
 WORKDIR /
 COPY charts /charts
 

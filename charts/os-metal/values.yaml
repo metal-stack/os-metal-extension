@@ -1,5 +1,5 @@
 image:
-  repository: metalpod/os-metal-extension
+  repository: ghcr.io/metal-stack/os-metal-extension
   tag: latest
   pullPolicy: Always
 
@@ -8,5 +8,8 @@ resources: {}
 controllers:
   concurrentSyncs: 5
   ignoreOperationAnnotation: false
+
+leaderElection:
+  resourceLock: leases
 
 disableControllers: []

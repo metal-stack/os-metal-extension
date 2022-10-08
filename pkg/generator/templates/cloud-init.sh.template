@@ -1,0 +1,60 @@
+#!/bin/bash
+
+{{- define "put-content" -}}
+cat << EOF | base64 -d > '{{ .Path }}'
+{{ .Content }}
+EOF
+{{- end -}}
+
+{{- define "put-content-unencoded" -}}
+cat << EOF > '{{ .Path }}'
+{{ .Content }}
+EOF
+{{- end -}}
+
+{{- if .Bootstrap }}
+#Fix mis-configuration of dockerd
+mkdir -p /etc/docker
+echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
+sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
+
+# Change existing worker to use docker registry-mirror
+file="/etc/docker/daemon.json"
+if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
+    contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
+    echo "${contents}" > ${file}
+fi
+
+systemctl daemon-reload
+systemctl reload docker
+{{- end }}
+
+{{ range $_, $file := .Files -}}
+mkdir -p '{{ $file.Dirname }}'
+{{ if $file.TransmitUnencoded -}}
+{{ template "put-content-unencoded" $file }}
+{{- else -}}
+{{ template "put-content" $file }}
+{{- end }}
+{{ if $file.Permissions -}}
+chmod '{{ $file.Permissions }}' '{{ $file.Path }}'
+{{ end }}
+{{ end }}
+
+{{ range $_, $unit := .Units -}}
+{{ if $unit.Content -}}
+{{ template "put-content" $unit }}
+{{- end }}
+{{ if $unit.DropIns }}
+mkdir -p '{{ $unit.DropIns.Path }}'
+{{ range $_, $dropIn := $unit.DropIns.Items -}}
+{{ template "put-content" $dropIn }}
+{{- end }}
+{{- end }}
+{{- end }}
+
+{{ if .Bootstrap -}}
+{{ range $_, $unit := .Units -}}
+systemctl enable '{{ $unit.Name }}' && systemctl restart '{{ $unit.Name }}'
+{{- end -}}
+{{- end -}}

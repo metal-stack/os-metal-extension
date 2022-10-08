@@ -1,32 +1,30 @@
-package pkg
+package ignition
 
 import (
-	"context"
 	"encoding/json"
 	"reflect"
 	"testing"
 
 	"github.com/coreos/container-linux-config-transpiler/config/types"
+	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"k8s.io/utils/pointer"
 )
 
 func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 	tests := []struct {
 		name    string
-		config  *extensionsv1alpha1.OperatingSystemConfig
+		config  *generator.OperatingSystemConfig
 		want    types.Config
 		wantErr bool
 	}{
 		{
 			name: "simple service",
-			config: &extensionsv1alpha1.OperatingSystemConfig{
-				Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
-					Units: []extensionsv1alpha1.Unit{
-						{
-							Name:    "kubelet.service",
-							Content: strPtr("[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet"),
-							Enable:  boolPtr(true),
-						},
+			config: &generator.OperatingSystemConfig{
+				Units: []*generator.Unit{
+					{
+						Name:    "kubelet.service",
+						Content: []byte(("[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet")),
 					},
 				},
 			},
@@ -37,7 +35,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 						{
 							Name:     "kubelet.service",
 							Contents: "[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet",
-							Enable:   true,
+							Enabled:  pointer.BoolPtr(true),
 						},
 					},
 				},
@@ -46,19 +44,13 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 
 		{
 			name: "simple files",
-			config: &extensionsv1alpha1.OperatingSystemConfig{
-				Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
-					Files: []extensionsv1alpha1.File{
-						{
-							Path: "/etc/hostname",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: "",
-									Data:     "testhost",
-								},
-							},
-							Permissions: int32Ptr(0644),
-						},
+			config: &generator.OperatingSystemConfig{
+				Files: []*generator.File{
+					{
+						Path:              "/etc/hostname",
+						TransmitUnencoded: pointer.BoolPtr(true),
+						Content:           []byte("testhost"),
+						Permissions:       pointer.Int32(0644),
 					},
 				},
 			},
@@ -73,7 +65,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 								// FIXME here should be testhosts ???
 								Inline: "testhost",
 							},
-							Mode: intPtr(0644),
+							Mode: pointer.Int(0644),
 						},
 					},
 				},
@@ -82,11 +74,9 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 
 		{
 			name: "cri is enabled",
-			config: &extensionsv1alpha1.OperatingSystemConfig{
-				Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
-					CRIConfig: &extensionsv1alpha1.CRIConfig{
-						Name: "containerd",
-					},
+			config: &generator.OperatingSystemConfig{
+				CRI: &extensionsv1alpha1.CRIConfig{
+					Name: "containerd",
 				},
 			},
 			wantErr: false,
@@ -112,7 +102,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Contents: types.FileContents{
 								Inline: containerdConfig,
 							},
-							Mode: intPtr(0644),
+							Mode: pointer.Int(0644),
 						},
 					},
 				},
@@ -122,9 +112,9 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := IgnitionFromOperatingSystemConfig(context.Background(), nil, tt.config)
+			got, err := ignitionFromOperatingSystemConfig(tt.config)
 			if (err != nil) != tt.wantErr {
-				t.Errorf("IgnitionFromOperatingSystemConfig() error = %v, wantErr %v", err, tt.wantErr)
+				t.Errorf("ignitionFromOperatingSystemConfig() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
 
@@ -134,23 +124,8 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 				t.Error(err)
 			}
 			if !reflect.DeepEqual(got, want) {
-				t.Errorf("IgnitionFromOperatingSystemConfig()\ngot:\n%v\nwant:\n %v", string(got), string(want))
+				t.Errorf("ignitionFromOperatingSystemConfig()\ngot:\n%v\nwant:\n%v", string(got), string(want))
 			}
 		})
 	}
-}
-
-func strPtr(s string) *string {
-	return &s
-}
-
-func boolPtr(b bool) *bool {
-	return &b
-}
-
-func int32Ptr(i int32) *int32 {
-	return &i
-}
-func intPtr(i int) *int {
-	return &i
 }

@@ -15,7 +15,8 @@
 package main
 
 import (
-	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"os"
+
 	"github.com/gardener/gardener/pkg/logger"
 	"github.com/metal-stack/os-metal-extension/cmd/app"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -27,6 +28,7 @@ func main() {
 	cmd := app.NewControllerCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {
-		controllercmd.LogErrAndExit(err, "error executing the main controller command")
+		log.Log.Error(err, "error executing the main controller command")
+		os.Exit(1)
 	}
 }

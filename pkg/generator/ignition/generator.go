@@ -72,7 +72,7 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 		unit := types.SystemdUnit{
 			Contents: contents,
 			Name:     u.Name,
-			Enabled:  pointer.BoolPtr(true),
+			Enabled:  pointer.Bool(true),
 		}
 		for _, dr := range u.DropIns {
 			unit.Dropins = append(unit.Dropins, types.SystemdUnitDropIn{

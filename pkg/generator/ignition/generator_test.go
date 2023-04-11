@@ -35,7 +35,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 						{
 							Name:     "kubelet.service",
 							Contents: "[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet",
-							Enabled:  pointer.BoolPtr(true),
+							Enabled:  pointer.Bool(true),
 						},
 					},
 				},
@@ -48,7 +48,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 				Files: []*generator.File{
 					{
 						Path:              "/etc/hostname",
-						TransmitUnencoded: pointer.BoolPtr(true),
+						TransmitUnencoded: pointer.Bool(true),
 						Content:           []byte("testhost"),
 						Permissions:       pointer.Int32(0644),
 					},

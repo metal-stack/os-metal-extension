@@ -24,6 +24,8 @@ import (
 	componentbaseconfig "k8s.io/component-base/config"
 
 	controllercmd "github.com/gardener/gardener/extensions/pkg/controller/cmd"
+	"github.com/gardener/gardener/extensions/pkg/controller/heartbeat"
+	heartbeatcmd "github.com/gardener/gardener/extensions/pkg/controller/heartbeat/cmd"
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon"
 	oscommoncmd "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/cmd"
 	"github.com/gardener/gardener/extensions/pkg/util"
@@ -60,6 +62,12 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 			MaxConcurrentReconciles: 5,
 		}
 
+		heartbeatCtrlOpts = &heartbeatcmd.Options{
+			ExtensionName:        ctrlName,
+			RenewIntervalSeconds: 30,
+			Namespace:            os.Getenv("LEADER_ELECTION_NAMESPACE"),
+		}
+
 		reconcileOpts = &controllercmd.ReconcilerOptions{}
 
 		controllerSwitches = oscommoncmd.SwitchOptions(ctrlName, osTypes, g)
@@ -69,6 +77,7 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 			restOpts,
 			mgrOpts,
 			ctrlOpts,
+			controllercmd.PrefixOption("heartbeat-", heartbeatCtrlOpts),
 			reconcileOpts,
 			controllerSwitches,
 		)
@@ -81,7 +90,9 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 			if err := aggOption.Complete(); err != nil {
 				return fmt.Errorf("error completing options: %w", err)
 			}
-
+			if err := heartbeatCtrlOpts.Validate(); err != nil {
+				return err
+			}
 			// TODO: Make these flags configurable via command line parameters or component config file.
 			util.ApplyClientConnectionConfigurationToRESTConfig(&componentbaseconfig.ClientConnectionConfiguration{
 				QPS:   100.0,
@@ -103,6 +114,7 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 			}
 
 			ctrlOpts.Completed().Apply(&oscommon.DefaultAddOptions.Controller)
+			heartbeatCtrlOpts.Completed().Apply(&heartbeat.DefaultAddOptions)
 
 			reconcileOpts.Completed().Apply(&oscommon.DefaultAddOptions.IgnoreOperationAnnotation)
 

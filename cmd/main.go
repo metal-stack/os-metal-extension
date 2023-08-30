@@ -24,7 +24,7 @@ import (
 )
 
 func main() {
-	log.SetLogger(logger.ZapLogger(false))
+	log.SetLogger(logger.MustNewZapLogger(logger.InfoLevel, logger.FormatJSON))
 	cmd := app.NewControllerCommand(signals.SetupSignalHandler())
 
 	if err := cmd.Execute(); err != nil {

@@ -1,10 +1,10 @@
-FROM golang:1.20-alpine3.17 AS builder
+FROM golang:1.20-alpine3.18 AS builder
 RUN apk add make git gcc musl-dev
 WORKDIR /work
 COPY . .
 RUN make all
 
-FROM alpine:3.17 AS base
+FROM alpine:3.18 AS base
 WORKDIR /
 COPY charts /charts
 

@@ -9,6 +9,7 @@ import (
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	ostemplate "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/template"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/go-logr/logr"
 	"k8s.io/utils/pointer"
 )
 
@@ -41,9 +42,9 @@ func New(template *template.Template, unitsPath string, cmd string, additionalVa
 }
 
 // Generate generates an ignition script from the given OperatingSystemConfig.
-func (t *IgnitionGenerator) Generate(config *generator.OperatingSystemConfig) ([]byte, *string, error) {
+func (t *IgnitionGenerator) Generate(logr logr.Logger, config *generator.OperatingSystemConfig) ([]byte, *string, error) {
 	if config.Object.Spec.Purpose != extensionsv1alpha1.OperatingSystemConfigPurposeProvision {
-		return t.cloudInitGenerator.Generate(config)
+		return t.cloudInitGenerator.Generate(logr, config)
 	}
 
 	var cmd *string

@@ -25,9 +25,6 @@ if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
     echo "${contents}" > ${file}
 fi
 
-sed -i 's/MTUBytes=9000/MTUBytes=1440/g' /etc/systemd/network/10-lan0.link
-sed -i 's/MTUBytes=9000/MTUBytes=1440/g' /etc/systemd/network/11-lan1.link
-
 systemctl daemon-reload
 systemctl reload docker
 {{- end }}

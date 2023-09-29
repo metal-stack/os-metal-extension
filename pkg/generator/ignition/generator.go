@@ -130,6 +130,29 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 		}
 	}
 
+	mtuAdjuster := types.SystemdUnit{
+		Name: "adjust-mtu.service",
+		Dropins: []types.SystemdUnitDropIn{
+			{
+				Name: "adjust-mtu",
+				Contents: `[Unit]
+Description=Adjust MTU
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/bash -c "UPTIME=$(awk '{print int($1)}' /proc/uptime); if [ $UPTIME -le 600 ]; then ip link set dev lan0 mtu 1440; ip link set dev lan1 mtu 1440; echo 'mtus adjusted to 1440'; else echo 'nothing to be done'; fi"
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
+`,
+			},
+		},
+	}
+
+	cfg.Systemd.Units = append(cfg.Systemd.Units, mtuAdjuster)
+
 	outCfg, report := types.Convert(cfg, "", nil)
 	if report.IsFatal() {
 		return nil, fmt.Errorf("could not transpile ignition config: %s", report.String())

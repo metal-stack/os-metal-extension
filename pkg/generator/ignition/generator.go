@@ -131,11 +131,9 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 	}
 
 	mtuAdjuster := types.SystemdUnit{
-		Name: "adjust-mtu.service",
-		Dropins: []types.SystemdUnitDropIn{
-			{
-				Name: "adjust-mtu",
-				Contents: `[Unit]
+		Name:    "adjust-mtu.service",
+		Enabled: pointer.Bool(true),
+		Contents: `[Unit]
 Description=Adjust MTU
 After=network.target
 
@@ -147,8 +145,6 @@ RemainAfterExit=true
 [Install]
 WantedBy=multi-user.target
 `,
-			},
-		},
 	}
 
 	cfg.Systemd.Units = append(cfg.Systemd.Units, mtuAdjuster)

@@ -34,7 +34,7 @@ import (
 	runtimelog "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	"github.com/metal-stack/os-metal-extension/pkg/generator"
+	"github.com/metal-stack/os-metal-extension/pkg/controller/operatingsystemconfig/generator"
 )
 
 const ctrlName = "os-metal"

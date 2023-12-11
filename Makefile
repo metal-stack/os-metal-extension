@@ -27,9 +27,17 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-CGO_ENABLED := 0
-GO111MODULE := on
 GOLANGCI_LINT_VERSION := v1.48.0
+GO_VERSION := 1.21
+
+ifeq ($(CI),true)
+  DOCKER_TTY_ARG=""
+else
+  DOCKER_TTY_ARG=t
+endif
+
+CGO_ENABLED := 0
+export GO111MODULE := on
 
 ### Build commands
 
@@ -52,19 +60,20 @@ install: revendor $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCK
 
 .PHONY: revendor
 revendor:
-	go mod vendor
-	go mod tidy
-	chmod +x vendor/github.com/gardener/gardener/hack/*.sh
+	@GO111MODULE=on go mod vendor
+	@GO111MODULE=on go mod tidy
+	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/*
+	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/.ci/*
 
 .PHONY: generate
-generate:
+generate: $(HELM)
 	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate.sh ./charts/... ./cmd/... ./pkg/...
 
 .PHONE: generate-in-docker
-generate-in-docker:
-	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:1.19 \
+generate-in-docker: revendor $(HELM) $(YQ)
+	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:$(GO_VERSION) \
 		sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
-				&& make revendor install generate \
+				&& make generate \
 				&& chown -R $(shell id -u):$(shell id -g) ."
 
 .PHONY: docker-image
@@ -74,11 +83,3 @@ docker-image:
 .PHONY: docker-push
 docker-push:
 	@docker push $(IMAGE_PREFIX)/os-metal-extension:$(IMAGE_TAG)
-
-### Debug / Development commands
-.PHONY: start-os-metal
-start-os-metal:
-	@LEADER_ELECTION_NAMESPACE=garden go run \
-		-ldflags $(LD_FLAGS) \
-		./cmd \
-		--leader-election=$(LEADER_ELECTION)

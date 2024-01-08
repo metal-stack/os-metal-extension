@@ -144,7 +144,7 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 			return nil, fmt.Errorf("unable to decode providerConfig")
 		}
 
-		fmt.Errorf("networkIsolation:%#v", networkIsolation)
+		fmt.Printf("networkIsolation:%#v", networkIsolation)
 	}
 
 	outCfg, report := types.Convert(cfg, "", nil)

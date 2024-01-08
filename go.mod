@@ -8,7 +8,7 @@ require (
 	github.com/gardener/gardener v1.71.6
 	github.com/go-logr/logr v1.3.0
 	github.com/golang/mock v1.6.0
-	github.com/metal-stack/gardener-extension-provider-metal v0.21.4-0.20231219083334-0f3782ebd9cf
+	github.com/metal-stack/gardener-extension-provider-metal v0.21.4-0.20240108124825-3711b79df28d
 	github.com/onsi/ginkgo v1.16.5
 	github.com/spf13/cobra v1.8.0
 	k8s.io/api v0.26.3

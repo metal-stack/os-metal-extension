@@ -100,7 +100,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Filesystem: "root",
 							Path:       "/etc/containerd/config.toml",
 							Contents: types.FileContents{
-								Inline: containerdConfig,
+								Inline: containerdBaselineConfig,
 							},
 							Mode: pointer.Int(0644),
 						},

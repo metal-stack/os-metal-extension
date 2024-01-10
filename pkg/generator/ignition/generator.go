@@ -125,9 +125,6 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 	ntpFiles := additionalNTPConfFiles(networkIsolation.NTPServers)
 	cfg.Storage.Files = append(cfg.Storage.Files, ntpFiles...)
 
-	dockerFiles := additionalDockerConfigFiles(networkIsolation.RegistryMirrors)
-	cfg.Storage.Files = append(cfg.Storage.Files, dockerFiles...)
-
 	if config.CRI != nil {
 		cri := config.CRI
 		if cri.Name == extensionsv1alpha1.CRINameContainerD {
@@ -211,27 +208,6 @@ version = 2
 
 	containerdConfig.Contents.Inline = renderedContent
 	return containerdConfig
-}
-
-func additionalDockerConfigFiles(mirrors []metalextensionv1alpha1.RegistryMirror) []types.File {
-	if len(mirrors) == 0 {
-		return nil
-	}
-
-	mirrorAddrs := make([]string, len(mirrors))
-	for i, m := range mirrors {
-		mirrorAddrs[i] = fmt.Sprintf("https://%q", m.Hostname)
-	}
-	return []types.File{
-		{
-			Path:       "/etc/docker/daemon.json",
-			Filesystem: "root",
-			Mode:       &types.DefaultFileMode,
-			Contents: types.FileContents{
-				Inline: "{" + strings.Join(mirrorAddrs, ",") + "}",
-			},
-		},
-	}
 }
 
 func additionalDNSConfFiles(dnsServers []string) []types.File {

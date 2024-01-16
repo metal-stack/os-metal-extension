@@ -120,35 +120,36 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 					Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
 						DefaultSpec: extensionsv1alpha1.DefaultSpec{
 							ProviderConfig: &runtime.RawExtension{
-								Raw: marshal(t, &metalextensionv1alpha1.NetworkIsolation{
-									AllowedNetworks: metalextensionv1alpha1.AllowedNetworks{
-										Ingress: []string{"10.0.0.1/24"},
-										Egress:  []string{"100.0.0.1/24"},
-									},
-									DNSServers: []string{"1.1.1.1", "1.0.0.1"},
-									NTPServers: []string{"134.60.1.27", "134.60.111.110"},
-									RegistryMirrors: []metalextensionv1alpha1.RegistryMirror{
-										{
-											Name:     "metal-stack registry",
-											Endpoint: "https://r.metal-stack.dev",
-											IP:       "1.2.3.4",
-											Port:     443,
-											MirrorOf: []string{
-												"ghcr.io",
-												"quay.io",
+								Raw: marshal(t, &metalextensionv1alpha1.ImageProviderConfig{
+									NetworkIsolation: &metalextensionv1alpha1.NetworkIsolation{
+										AllowedNetworks: metalextensionv1alpha1.AllowedNetworks{
+											Ingress: []string{"10.0.0.1/24"},
+											Egress:  []string{"100.0.0.1/24"},
+										},
+										DNSServers: []string{"1.1.1.1", "1.0.0.1"},
+										NTPServers: []string{"134.60.1.27", "134.60.111.110"},
+										RegistryMirrors: []metalextensionv1alpha1.RegistryMirror{
+											{
+												Name:     "metal-stack registry",
+												Endpoint: "https://r.metal-stack.dev",
+												IP:       "1.2.3.4",
+												Port:     443,
+												MirrorOf: []string{
+													"ghcr.io",
+													"quay.io",
+												},
+											},
+											{
+												Name:     "local registry",
+												Endpoint: "http://localhost:8080",
+												IP:       "127.0.0.1",
+												Port:     8080,
+												MirrorOf: []string{
+													"docker.io",
+												},
 											},
 										},
-										{
-											Name:     "local registry",
-											Endpoint: "http://localhost:8080",
-											IP:       "127.0.0.1",
-											Port:     8080,
-											MirrorOf: []string{
-												"docker.io",
-											},
-										},
-									},
-								}),
+									}}),
 							},
 						},
 					},

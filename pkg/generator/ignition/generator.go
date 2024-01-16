@@ -74,12 +74,16 @@ func (t *IgnitionGenerator) Generate(logr logr.Logger, config *generator.Operati
 func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) ([]byte, error) {
 	cfg := types.Config{}
 
+	imageProviderConfig := &metalextensionv1alpha1.ImageProviderConfig{}
 	networkIsolation := &metalextensionv1alpha1.NetworkIsolation{}
 	if config.Object != nil && config.Object.Spec.ProviderConfig != nil {
-		err := decodeProviderConfig(config.Object.Spec.ProviderConfig, networkIsolation)
+		err := decodeProviderConfig(config.Object.Spec.ProviderConfig, imageProviderConfig)
 		if err != nil {
 			return nil, fmt.Errorf("unable to decode providerConfig")
 		}
+	}
+	if imageProviderConfig.NetworkIsolation != nil {
+		networkIsolation = imageProviderConfig.NetworkIsolation
 	}
 
 	cfg.Systemd = types.Systemd{}

@@ -91,7 +91,7 @@ func (a *actuator) handleProvisionOSC(ctx context.Context, osc *extensionsv1alph
 	writeUnitsToDiskScript := operatingsystemconfig.UnitsToDiskScript(osc.Spec.Units)
 
 	script := `#!/bin/bash
-#Fix mis-configuration of dockerd
+# Fix mis-configuration of dockerd
 mkdir -p /etc/docker
 echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
 sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
@@ -111,7 +111,7 @@ systemctl reload docker
 `
 
 	for _, unit := range osc.Spec.Units {
-		script += fmt.Sprintf(`systemctl enable '%s' && systemctl restart '%s'
+		script += fmt.Sprintf(`systemctl enable '%s' && systemctl restart --no-block '%s'
 `, unit.Name, unit.Name)
 	}
 

@@ -82,7 +82,7 @@ var _ = Describe("Actuator", func() {
 
 		When("purpose is 'provision'", func() {
 			expectedUserData := `#!/bin/bash
-#Fix mis-configuration of dockerd
+# Fix mis-configuration of dockerd
 mkdir -p /etc/docker
 echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
 sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
@@ -108,7 +108,7 @@ cat << EOF | base64 -d > "/etc/systemd/system/some-unit.service"
 Zm9v
 EOF
 
-systemctl enable 'some-unit.service' && systemctl restart 'some-unit.service'
+systemctl enable 'some-unit.service' && systemctl restart --no-block 'some-unit.service'
 `
 
 			Describe("#Reconcile", func() {

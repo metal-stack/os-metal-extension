@@ -120,7 +120,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 					Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
 						DefaultSpec: extensionsv1alpha1.DefaultSpec{
 							ProviderConfig: &runtime.RawExtension{
-								Raw: marshal(t, &metalextensionv1alpha1.ImageProviderConfig{
+								Raw: mustMarshal(t, &metalextensionv1alpha1.ImageProviderConfig{
 									NetworkIsolation: &metalextensionv1alpha1.NetworkIsolation{
 										AllowedNetworks: metalextensionv1alpha1.AllowedNetworks{
 											Ingress: []string{"10.0.0.1/24"},
@@ -249,7 +249,7 @@ version = 2
 	}
 }
 
-func marshal(t *testing.T, obj runtime.Object) []byte {
+func mustMarshal(t *testing.T, obj runtime.Object) []byte {
 	data, err := json.Marshal(obj)
 	if err != nil {
 		t.Errorf("failed to marshal object %s", err)

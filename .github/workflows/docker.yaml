@@ -48,10 +48,6 @@ jobs:
         [ "${GITHUB_EVENT_NAME}" == 'release' ] && echo "tag=${GITHUB_REF##*/}" >> $GITHUB_ENV || true
         [ "${GITHUB_EVENT_NAME}" == 'push' ] && echo "tag=latest" >> $GITHUB_ENV || true
 
-    - name: Build
-      run: |
-        make release
-
     - name: Push image
       uses: docker/build-push-action@v5
       with:

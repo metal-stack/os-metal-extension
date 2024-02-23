@@ -6,8 +6,9 @@ import (
 	commongen "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/generator"
 	ostemplate "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/template"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/metal-stack/os-metal-extension/pkg/generator/ignition"
 	"k8s.io/apimachinery/pkg/util/runtime"
+
+	"github.com/metal-stack/os-metal-extension/pkg/controller/operatingsystemconfig/generator/ignition"
 )
 
 var (

@@ -39,7 +39,7 @@ import (
 
 const ctrlName = "os-metal"
 
-var osTypes = []string{"ubuntu", "debian"}
+var osTypes = []string{"ubuntu", "debian", "nvidia"}
 
 // NewControllerCommand returns a new Command with a new Generator
 func NewControllerCommand(ctx context.Context) *cobra.Command {
@@ -118,7 +118,7 @@ func NewControllerCommand(ctx context.Context) *cobra.Command {
 
 			reconcileOpts.Completed().Apply(&oscommon.DefaultAddOptions.IgnoreOperationAnnotation)
 
-			if err := controllerSwitches.Completed().AddToManager(mgr); err != nil {
+			if err := controllerSwitches.Completed().AddToManager(ctx, mgr); err != nil {
 				return fmt.Errorf("could not add controller to manager: %w", err)
 			}
 

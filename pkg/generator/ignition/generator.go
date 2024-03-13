@@ -28,6 +28,8 @@ ExecStart=/usr/bin/containerd --config=/etc/containerd/config.toml
 `
 	containerdBaselineConfig = `
 # created by os-extension-metal
+version = 2
+
 [plugins.cri.registry.mirrors]
   [plugins.cri.registry.mirrors."docker.io"]
     endpoint = ["https://mirror.gcr.io"]

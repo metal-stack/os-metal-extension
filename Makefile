@@ -27,8 +27,8 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v1.48.0
-GO_VERSION := 1.21
+GOLANGCI_LINT_VERSION := v1.56.2
+GO_VERSION := 1.22
 
 ifeq ($(CI),true)
   DOCKER_TTY_ARG=""
@@ -45,9 +45,13 @@ TOOLS_DIR := hack/tools
 -include vendor/github.com/gardener/gardener/hack/tools.mk
 
 .PHONY: all
-all:
+all: test
 	go build -trimpath -tags netgo -o os-metal cmd/main.go
 	strip os-metal
+
+.PHONY: test
+test:
+	go test ./... -race -coverprofile=coverage.out -covermode=atomic && go tool cover -func=coverage.out
 
 .PHONY: clean
 clean:

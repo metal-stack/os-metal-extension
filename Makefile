@@ -27,8 +27,8 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v1.48.0
-GO_VERSION := 1.21
+GOLANGCI_LINT_VERSION := v1.59.1
+GO_VERSION := 1.22
 
 ifeq ($(CI),true)
   DOCKER_TTY_ARG=""
@@ -66,8 +66,8 @@ revendor:
 	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/.ci/*
 
 .PHONY: generate
-generate: $(HELM)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate.sh ./charts/... ./cmd/... ./pkg/...
+generate: $(HELM) $(YQ)
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
 
 .PHONE: generate-in-docker
 generate-in-docker: revendor $(HELM) $(YQ)

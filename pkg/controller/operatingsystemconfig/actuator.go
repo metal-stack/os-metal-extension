@@ -24,7 +24,7 @@ import (
 	oscommonactuator "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -59,7 +59,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		return []byte(userData), nil, nil, nil, nil, nil, err
 
 	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
-		extensionUnits, extensionFiles, err := a.handleReconcileOSC(osc)
+		extensionUnits, extensionFiles := a.handleReconcileOSC(osc)
 		return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), extensionUnits, extensionFiles, err
 
 	default:
@@ -118,7 +118,7 @@ systemctl reload docker
 	return script, nil
 }
 
-func (a *actuator) handleReconcileOSC(_ *extensionsv1alpha1.OperatingSystemConfig) ([]extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) handleReconcileOSC(_ *extensionsv1alpha1.OperatingSystemConfig) ([]extensionsv1alpha1.Unit, []extensionsv1alpha1.File) {
 	var (
 		extensionUnits []extensionsv1alpha1.Unit
 		extensionFiles []extensionsv1alpha1.File
@@ -127,7 +127,7 @@ func (a *actuator) handleReconcileOSC(_ *extensionsv1alpha1.OperatingSystemConfi
 	filePathContainerdConfig := filepath.Join("/", "etc", "containerd", "config.toml")
 	extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
 		Path:        filePathContainerdConfig,
-		Permissions: pointer.Int32(0644),
+		Permissions: ptr.To(int32(0644)),
 		Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: `
 # created by os-extension-metal
 [plugins.cri.registry.mirrors]
@@ -147,5 +147,5 @@ ExecStart=` + filePathContainerdConfig + `
 		FilePaths: []string{filePathContainerdConfig},
 	})
 
-	return extensionUnits, extensionFiles, nil
+	return extensionUnits, extensionFiles
 }

@@ -23,7 +23,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -49,7 +49,7 @@ var _ = Describe("Actuator", func() {
 		osc = &extensionsv1alpha1.OperatingSystemConfig{
 			Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
 				Purpose: extensionsv1alpha1.OperatingSystemConfigPurposeProvision,
-				Units:   []extensionsv1alpha1.Unit{{Name: "some-unit.service", Content: pointer.String("foo")}},
+				Units:   []extensionsv1alpha1.Unit{{Name: "some-unit.service", Content: ptr.To("foo")}},
 				Files:   []extensionsv1alpha1.File{{Path: "/some/file", Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: "bar"}}}},
 			},
 		}
@@ -156,7 +156,7 @@ ExecStart=/etc/containerd/config.toml
 					Expect(extensionFiles).To(ConsistOf(
 						extensionsv1alpha1.File{
 							Path:        "/etc/containerd/config.toml",
-							Permissions: pointer.Int32(0644),
+							Permissions: ptr.To(int32(0644)),
 							Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: `
 # created by os-extension-metal
 [plugins.cri.registry.mirrors]

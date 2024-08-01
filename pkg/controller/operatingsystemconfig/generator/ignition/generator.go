@@ -17,7 +17,7 @@ import (
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -98,7 +98,7 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 		unit := types.SystemdUnit{
 			Contents: contents,
 			Name:     u.Name,
-			Enabled:  pointer.Bool(true),
+			Enabled:  ptr.To(true),
 		}
 		for _, dr := range u.DropIns {
 			unit.Dropins = append(unit.Dropins, types.SystemdUnitDropIn{

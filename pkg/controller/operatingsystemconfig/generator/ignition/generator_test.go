@@ -10,7 +10,7 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	metalextensionv1alpha1 "github.com/metal-stack/gardener-extension-provider-metal/pkg/apis/metal/v1alpha1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
@@ -37,7 +37,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 						{
 							Name:     "kubelet.service",
 							Contents: "[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet",
-							Enabled:  pointer.Bool(true),
+							Enabled:  ptr.To(true),
 						},
 					},
 				},
@@ -50,9 +50,9 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 				Files: []*generator.File{
 					{
 						Path:              "/etc/hostname",
-						TransmitUnencoded: pointer.Bool(true),
+						TransmitUnencoded: ptr.To(true),
 						Content:           []byte("testhost"),
-						Permissions:       pointer.Int32(0644),
+						Permissions:       ptr.To(int32(0644)),
 					},
 				},
 			},
@@ -67,7 +67,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 								// FIXME here should be testhosts ???
 								Inline: "testhost",
 							},
-							Mode: pointer.Int(0644),
+							Mode: ptr.To(0644),
 						},
 					},
 				},
@@ -104,7 +104,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Contents: types.FileContents{
 								Inline: containerdBaselineConfig,
 							},
-							Mode: pointer.Int(0644),
+							Mode: ptr.To(0644),
 						},
 					},
 				},

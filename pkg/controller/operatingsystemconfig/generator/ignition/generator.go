@@ -28,7 +28,7 @@ type IgnitionGenerator struct {
 // New creates a new IgnitionGenerator with the given units path.
 func New(unitsPath string, cmd string, additionalValuesFunc func(*extensionsv1alpha1.OperatingSystemConfig) (map[string]interface{}, error)) *IgnitionGenerator {
 	return &IgnitionGenerator{
-		cloudInitGenerator: ostemplate.NewCloudInitGenerator(unitsPath, cmd, additionalValuesFunc),
+		cloudInitGenerator: ostemplate.NewCloudInitGenerator(nil, unitsPath, cmd, additionalValuesFunc),
 		cmd:                cmd,
 	}
 }

@@ -1,0 +1,54 @@
+{
+    "ignition": {
+        "config": {},
+        "security": {
+            "tls": {}
+        },
+        "timeouts": {},
+        "version": "2.3.0"
+    },
+    "networkd": {},
+    "passwd": {},
+    "storage": {
+        "files": [
+            {
+                "filesystem": "root",
+                "path": "/etc/systemd/resolved.conf.d/dns.conf",
+                "contents": {
+                    "source": "data:,%23%20Generated%20by%20os-extension-metal%0A%0A%5BResolve%5D%0ADNS%3D1.1.1.1%201.0.0.1%0ADomain%3D~.%0A%0A",
+                    "verification": {}
+                },
+                "mode": 420
+            },
+            {
+                "filesystem": "root",
+                "path": "/etc/resolv.conf",
+                "contents": {
+                    "source": "data:,%23%20Generated%20by%20os-extension-metal%0Anameserver%201.1.1.1%0Anameserver%201.0.0.1%0A",
+                    "verification": {}
+                },
+                "mode": 420
+            },
+            {
+                "filesystem": "root",
+                "path": "/etc/systemd/timesyncd.conf",
+                "contents": {
+                    "source": "data:,%23%20Generated%20by%20os-extension-metal%0A%0A%5BTime%5D%0ANTP%3D134.60.1.27%20134.60.111.110%0A",
+                    "verification": {}
+                },
+                "mode": 420
+            },
+            {
+                "filesystem": "root",
+                "path": "/etc/containerd/conf.d/isolated-cluster.toml",
+                "contents": {
+                    "source": "data:,%23%20Generated%20by%20os-extension-metal%0Aversion%20%3D%202%0A%0A%5Bplugins.%22io.containerd.grpc.v1.cri%22.registry%5D%0A%20%20%5Bplugi
+ns.%22io.containerd.grpc.v1.cri%22.registry.mirrors%5D%0A%20%20%20%20%5Bplugins.%22io.containerd.grpc.v1.cri%22.registry.mirrors.%22ghcr.io%22%5D%0A%20%20%20%20%20%20endpoint%20%3D%20%5B%22https%3A%2F%2Fr.metal-stack.dev%22%5D%0A%20%20%20%20%5Bplugins.%22io.containerd.grpc.v1.cri%22.registry.mirrors.%22quay.io%22%5D%0A%20%20%20%20%20%20endpoint%20%3D%20%5B%22https%3A%2F%2Fr.metal-stack.dev%22%5D%0A%20%20%20%20%5Bplugins.%22io.containerd.grpc.v1.cri%22.registry.mirrors.%22docker.io%22%5D%0A%20%20%20%20%20%20endpoint%20%3D%20%5B%22http%3A%2F%2Flocalhost%3A8080%22%5D%0A",
+                    "verification": {}
+                },
+                "mode": 420
+            }
+        ]
+    },
+    "systemd": {}
+}

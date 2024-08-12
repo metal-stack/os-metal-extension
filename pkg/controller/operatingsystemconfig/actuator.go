@@ -55,13 +55,11 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		if !a.useGardenerNodeAgent {
 			return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, nil, nil
 		}
-		userData, err := a.handleProvisionOSC(ctx, osc)
-		return []byte(userData), nil, nil, nil, nil, nil, err
+		return cloudConfig, nil, nil, nil, nil, nil, err
 
 	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
 		extensionUnits, extensionFiles := a.handleReconcileOSC(osc)
 		return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), extensionUnits, extensionFiles, err
-
 	default:
 		return nil, nil, nil, nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
 	}
@@ -83,40 +81,40 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensions
 	return a.Reconcile(ctx, log, osc)
 }
 
-func (a *actuator) handleProvisionOSC(ctx context.Context, osc *extensionsv1alpha1.OperatingSystemConfig) (string, error) {
-	writeFilesToDiskScript, err := operatingsystemconfig.FilesToDiskScript(ctx, a.client, osc.Namespace, osc.Spec.Files)
-	if err != nil {
-		return "", err
-	}
-	writeUnitsToDiskScript := operatingsystemconfig.UnitsToDiskScript(osc.Spec.Units)
+// func (a *actuator) handleProvisionOSC(ctx context.Context, osc *extensionsv1alpha1.OperatingSystemConfig) (string, error) {
+// 	writeFilesToDiskScript, err := operatingsystemconfig.FilesToDiskScript(ctx, a.client, osc.Namespace, osc.Spec.Files)
+// 	if err != nil {
+// 		return "", err
+// 	}
+// 	writeUnitsToDiskScript := operatingsystemconfig.UnitsToDiskScript(osc.Spec.Units)
 
-	script := `#!/bin/bash
-# Fix mis-configuration of dockerd
-mkdir -p /etc/docker
-echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
-sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
+// 	script := `#!/bin/bash
+// # Fix mis-configuration of dockerd
+// mkdir -p /etc/docker
+// echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
+// sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
 
-# Change existing worker to use docker registry-mirror
-file="/etc/docker/daemon.json"
-if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
-    contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
-    echo "${contents}" > ${file}
-fi
+// # Change existing worker to use docker registry-mirror
+// file="/etc/docker/daemon.json"
+// if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
+//     contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
+//     echo "${contents}" > ${file}
+// fi
 
-systemctl daemon-reload
-systemctl reload docker
-` + writeFilesToDiskScript + `
-` + writeUnitsToDiskScript + `
+// systemctl daemon-reload
+// systemctl reload docker
+// ` + writeFilesToDiskScript + `
+// ` + writeUnitsToDiskScript + `
 
-`
+// `
 
-	for _, unit := range osc.Spec.Units {
-		script += fmt.Sprintf(`systemctl enable '%s' && systemctl restart --no-block '%s'
-`, unit.Name, unit.Name)
-	}
+// 	for _, unit := range osc.Spec.Units {
+// 		script += fmt.Sprintf(`systemctl enable '%s' && systemctl restart --no-block '%s'
+// `, unit.Name, unit.Name)
+// 	}
 
-	return script, nil
-}
+// 	return script, nil
+// }
 
 func (a *actuator) handleReconcileOSC(_ *extensionsv1alpha1.OperatingSystemConfig) ([]extensionsv1alpha1.Unit, []extensionsv1alpha1.File) {
 	var (

@@ -55,29 +55,9 @@ var _ = Describe("Actuator", func() {
 		}
 	})
 
-	When("UseGardenerNodeAgent is false", func() {
-		BeforeEach(func() {
-			actuator = NewActuator(mgr, false)
-		})
-
-		Describe("#Reconcile", func() {
-			It("should not return an error", func() {
-				userData, command, unitNames, fileNames, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
-				Expect(err).NotTo(HaveOccurred())
-
-				Expect(userData).NotTo(BeEmpty()) // legacy logic is tested in ./generator/generator_test.go
-				Expect(command).To(BeNil())
-				Expect(unitNames).To(ConsistOf("some-unit.service"))
-				Expect(fileNames).To(ConsistOf("/some/file"))
-				Expect(extensionUnits).To(BeEmpty())
-				Expect(extensionFiles).To(BeEmpty())
-			})
-		})
-	})
-
 	When("UseGardenerNodeAgent is true", func() {
 		BeforeEach(func() {
-			actuator = NewActuator(mgr, true)
+			actuator = NewActuator(mgr)
 		})
 
 		When("purpose is 'provision'", func() {

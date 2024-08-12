@@ -30,15 +30,13 @@ import (
 )
 
 type actuator struct {
-	client               client.Client
-	useGardenerNodeAgent bool
+	client client.Client
 }
 
 // NewActuator creates a new Actuator that updates the status of the handled OperatingSystemConfig resources.
-func NewActuator(mgr manager.Manager, useGardenerNodeAgent bool) operatingsystemconfig.Actuator {
+func NewActuator(mgr manager.Manager) operatingsystemconfig.Actuator {
 	return &actuator{
-		client:               mgr.GetClient(),
-		useGardenerNodeAgent: useGardenerNodeAgent,
+		client: mgr.GetClient(),
 	}
 }
 
@@ -48,18 +46,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		return nil, nil, nil, nil, nil, nil, fmt.Errorf("could not generate cloud config: %w", err)
 	}
 
-	switch purpose := osc.Spec.Purpose; purpose {
-	case extensionsv1alpha1.OperatingSystemConfigPurposeProvision:
-		if !a.useGardenerNodeAgent {
-			return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, nil, nil
-		}
-		return cloudConfig, nil, nil, nil, nil, nil, err
-
-	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
-		return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, nil, err
-	default:
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
-	}
+	return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, nil, nil
 }
 
 func (a *actuator) Delete(_ context.Context, _ logr.Logger, _ *extensionsv1alpha1.OperatingSystemConfig) error {

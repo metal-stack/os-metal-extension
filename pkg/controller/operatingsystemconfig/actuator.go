@@ -18,13 +18,11 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"path/filepath"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig"
 	oscommonactuator "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
-	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -58,8 +56,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		return cloudConfig, nil, nil, nil, nil, nil, err
 
 	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
-		extensionUnits, extensionFiles := a.handleReconcileOSC(osc)
-		return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), extensionUnits, extensionFiles, err
+		return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, nil, err
 	default:
 		return nil, nil, nil, nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
 	}
@@ -79,71 +76,4 @@ func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, osc *extens
 
 func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, []string, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
 	return a.Reconcile(ctx, log, osc)
-}
-
-// func (a *actuator) handleProvisionOSC(ctx context.Context, osc *extensionsv1alpha1.OperatingSystemConfig) (string, error) {
-// 	writeFilesToDiskScript, err := operatingsystemconfig.FilesToDiskScript(ctx, a.client, osc.Namespace, osc.Spec.Files)
-// 	if err != nil {
-// 		return "", err
-// 	}
-// 	writeUnitsToDiskScript := operatingsystemconfig.UnitsToDiskScript(osc.Spec.Units)
-
-// 	script := `#!/bin/bash
-// # Fix mis-configuration of dockerd
-// mkdir -p /etc/docker
-// echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
-// sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
-
-// # Change existing worker to use docker registry-mirror
-// file="/etc/docker/daemon.json"
-// if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
-//     contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
-//     echo "${contents}" > ${file}
-// fi
-
-// systemctl daemon-reload
-// systemctl reload docker
-// ` + writeFilesToDiskScript + `
-// ` + writeUnitsToDiskScript + `
-
-// `
-
-// 	for _, unit := range osc.Spec.Units {
-// 		script += fmt.Sprintf(`systemctl enable '%s' && systemctl restart --no-block '%s'
-// `, unit.Name, unit.Name)
-// 	}
-
-// 	return script, nil
-// }
-
-func (a *actuator) handleReconcileOSC(_ *extensionsv1alpha1.OperatingSystemConfig) ([]extensionsv1alpha1.Unit, []extensionsv1alpha1.File) {
-	var (
-		extensionUnits []extensionsv1alpha1.Unit
-		extensionFiles []extensionsv1alpha1.File
-	)
-
-	filePathContainerdConfig := filepath.Join("/", "etc", "containerd", "config.toml")
-	extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
-		Path:        filePathContainerdConfig,
-		Permissions: ptr.To(int32(0644)),
-		Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: `
-# created by os-extension-metal
-[plugins.cri.registry.mirrors]
-  [plugins.cri.registry.mirrors."docker.io"]
-    endpoint = ["https://mirror.gcr.io"]
-`}},
-	})
-	extensionUnits = append(extensionUnits, extensionsv1alpha1.Unit{
-		Name: "containerd.service",
-		DropIns: []extensionsv1alpha1.DropIn{{
-			Name: "11-exec_config.conf",
-			Content: `[Service]
-ExecStart=
-ExecStart=` + filePathContainerdConfig + `
-`,
-		}},
-		FilePaths: []string{filePathContainerdConfig},
-	})
-
-	return extensionUnits, extensionFiles
 }

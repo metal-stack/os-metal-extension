@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"text/template"
 
 	gardenv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	metalextensionv1alpha1 "github.com/metal-stack/gardener-extension-provider-metal/pkg/apis/metal/v1alpha1"
@@ -27,9 +26,9 @@ type IgnitionGenerator struct {
 }
 
 // New creates a new IgnitionGenerator with the given units path.
-func New(template *template.Template, unitsPath string, cmd string, additionalValuesFunc func(*extensionsv1alpha1.OperatingSystemConfig) (map[string]interface{}, error)) *IgnitionGenerator {
+func New(unitsPath string, cmd string, additionalValuesFunc func(*extensionsv1alpha1.OperatingSystemConfig) (map[string]interface{}, error)) *IgnitionGenerator {
 	return &IgnitionGenerator{
-		cloudInitGenerator: ostemplate.NewCloudInitGenerator(template, unitsPath, cmd, additionalValuesFunc),
+		cloudInitGenerator: ostemplate.NewCloudInitGenerator(unitsPath, cmd, additionalValuesFunc),
 		cmd:                cmd,
 	}
 }

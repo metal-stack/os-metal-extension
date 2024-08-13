@@ -126,9 +126,9 @@ func ignitionFromOperatingSystemConfig(config *generator.OperatingSystemConfig) 
 
 	if config.CRI != nil && config.CRI.Name == extensionsv1alpha1.CRINameContainerD {
 		// the debian:12 containerd ships with "cri" plugin disabled, so we need override the config that ships with the os
-		// unfortunately, ignition does not allow to remove files easily.
 		//
-		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config
+		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config.
+		// unfortunately, ignition does not allow to remove files easily.
 		// along with the default import paths. see https://github.com/gardener/gardener/pull/10050)
 		cfg.Storage.Files = append(cfg.Storage.Files, types.File{
 			Path:       "/etc/containerd/config.toml",

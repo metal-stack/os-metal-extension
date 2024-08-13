@@ -39,7 +39,7 @@ func AddToManagerWithOptions(ctx context.Context, mgr manager.Manager, opts AddO
 	return operatingsystemconfig.Add(mgr, operatingsystemconfig.AddArgs{
 		Actuator:          NewActuator(mgr),
 		Predicates:        operatingsystemconfig.DefaultPredicates(ctx, mgr, opts.IgnoreOperationAnnotation),
-		Types:             []string{"ubuntu", "debian"},
+		Types:             []string{"ubuntu", "debian", "nvidia"},
 		ControllerOptions: opts.Controller,
 	})
 }

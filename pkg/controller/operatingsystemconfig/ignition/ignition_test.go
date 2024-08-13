@@ -5,6 +5,7 @@ import (
 
 	"github.com/flatcar/container-linux-config-transpiler/config/types"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"k8s.io/utils/ptr"
 )
@@ -126,6 +127,44 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 
 			if diff := cmp.Diff(got, tt.want); diff != "" {
 				t.Errorf(diff)
+			}
+		})
+	}
+}
+
+func Test_ignition_Transpile(t *testing.T) {
+	tests := []struct {
+		name    string
+		osc     *extensionsv1alpha1.OperatingSystemConfig
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "transpiles to ignition format 2.3.0",
+			osc: &extensionsv1alpha1.OperatingSystemConfig{
+				Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
+					Files: []extensionsv1alpha1.File{
+						{
+							Path: "/etc/a",
+						},
+					},
+				},
+			},
+			want: `{"ignition":{"config":{},"security":{"tls":{}},"timeouts":{},"version":"2.3.0"},"networkd":{},"passwd":{},"storage":{"files":[{"filesystem":"root","overwrite":true,"path":"/etc/a","contents":{"source":"data:,","verification":{}},"mode":420}]},"systemd":{}}`,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ignition{
+				log: logr.Discard(),
+			}
+			got, err := tr.Transpile(tt.osc)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ignition.Transpile() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if diff := cmp.Diff(string(got), tt.want); diff != "" {
+				t.Errorf("ignition.Transpile() diff = %s", diff)
 			}
 		})
 	}

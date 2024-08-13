@@ -72,20 +72,25 @@ func ignitionFromOperatingSystemConfig(osc *extensionsv1alpha1.OperatingSystemCo
 			mode = &m
 		}
 
-		inline, err := helper.Decode(f.Content.Inline.Encoding, []byte(f.Content.Inline.Data))
-		if err != nil {
-			return types.Config{}, fmt.Errorf("unable to decode content from osc: %w", err)
-		}
-
 		ignitionFile := types.File{
 			Path:       f.Path,
 			Filesystem: "root",
 			Mode:       mode,
-			Contents: types.FileContents{
-				Inline: string(inline),
-			},
+			// Contents: types.FileContents{
+			// 	Inline: string(inline),
+			// },
 			Overwrite: ptr.To(true),
 		}
+
+		if f.Content.Inline != nil {
+			inline, err := helper.Decode(f.Content.Inline.Encoding, []byte(f.Content.Inline.Data))
+			if err != nil {
+				return types.Config{}, fmt.Errorf("unable to decode content from osc: %w", err)
+			}
+
+			ignitionFile.Contents.Inline = string(inline)
+		}
+
 		cfg.Storage.Files = append(cfg.Storage.Files, ignitionFile)
 	}
 

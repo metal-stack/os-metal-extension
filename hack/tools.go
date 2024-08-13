@@ -13,6 +13,6 @@ import (
 
 	_ "github.com/ahmetb/gen-crd-api-reference-docs"
 	_ "github.com/golang/mock/mockgen"
-	_ "github.com/onsi/ginkgo/ginkgo"
+	_ "github.com/onsi/ginkgo/v2"
 	_ "k8s.io/code-generator"
 )

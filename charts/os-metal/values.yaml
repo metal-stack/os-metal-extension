@@ -12,3 +12,7 @@ controllers:
     renewIntervalSeconds: 30
 
 disableControllers: []
+
+gardener:
+  gardenlet:
+    featureGates: {}

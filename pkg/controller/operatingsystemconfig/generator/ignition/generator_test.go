@@ -155,6 +155,15 @@ NTP=134.60.1.27 134.60.111.110
 						},
 						{
 							Filesystem: "root",
+							Path:       "/etc/containerd/config.toml",
+							Mode:       &types.DefaultFileMode,
+							Contents: types.FileContents{
+								Inline: containerdConfig,
+							},
+							Overwrite: ptr.To(true),
+						},
+						{
+							Filesystem: "root",
 							Path:       "/etc/containerd/conf.d/isolated-cluster.toml",
 							Mode:       &types.DefaultFileMode,
 							Contents: types.FileContents{

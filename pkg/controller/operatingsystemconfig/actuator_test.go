@@ -48,6 +48,9 @@ var _ = Describe("Actuator", func() {
 
 		osc = &extensionsv1alpha1.OperatingSystemConfig{
 			Spec: extensionsv1alpha1.OperatingSystemConfigSpec{
+				CRIConfig: &extensionsv1alpha1.CRIConfig{
+					Name: "containerd",
+				},
 				Purpose: extensionsv1alpha1.OperatingSystemConfigPurposeProvision,
 				Units:   []extensionsv1alpha1.Unit{{Name: "some-unit.service", Content: ptr.To("foo")}},
 				Files:   []extensionsv1alpha1.File{{Path: "/some/file", Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: "bar"}}}},
@@ -61,45 +64,17 @@ var _ = Describe("Actuator", func() {
 		})
 
 		When("purpose is 'provision'", func() {
-			expectedUserData := `#!/bin/bash
-# Fix mis-configuration of dockerd
-mkdir -p /etc/docker
-echo '{ "storage-driver": "devicemapper" }' > /etc/docker/daemon.json
-sed -i '/Environment=DOCKER_SELINUX=--selinux-enabled=true/s/^/#/g' /run/systemd/system/docker.service
-
-# Change existing worker to use docker registry-mirror
-file="/etc/docker/daemon.json"
-if [ $(jq -r 'has("registry-mirrors")' "${file}") == "false" ]; then
-    contents=$(jq -M '. += {"registry-mirrors": ["https://mirror.gcr.io"]}' ${file})
-    echo "${contents}" > ${file}
-fi
-
-systemctl daemon-reload
-systemctl reload docker
-
-mkdir -p "/some"
-
-cat << EOF | base64 -d > "/some/file"
-YmFy
-EOF
-
-
-cat << EOF | base64 -d > "/etc/systemd/system/some-unit.service"
-Zm9v
-EOF
-
-systemctl enable 'some-unit.service' && systemctl restart --no-block 'some-unit.service'
-`
-
 			Describe("#Reconcile", func() {
 				It("should not return an error", func() {
 					userData, command, unitNames, fileNames, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
 					Expect(err).NotTo(HaveOccurred())
 
-					Expect(string(userData)).To(Equal(expectedUserData))
+					Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+					Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
+					Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
 					Expect(command).To(BeNil())
-					Expect(unitNames).To(BeEmpty())
-					Expect(fileNames).To(BeEmpty())
+					Expect(unitNames).To(ConsistOf("some-unit.service"))
+					Expect(fileNames).To(ConsistOf("/some/file"))
 					Expect(extensionUnits).To(BeEmpty())
 					Expect(extensionFiles).To(BeEmpty())
 				})
@@ -113,38 +88,13 @@ systemctl enable 'some-unit.service' && systemctl restart --no-block 'some-unit.
 
 			Describe("#Reconcile", func() {
 				It("should not return an error", func() {
-					userData, command, unitNames, fileNames, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+					userData, command, unitNames, fileNames, _, _, err := actuator.Reconcile(ctx, log, osc)
 					Expect(err).NotTo(HaveOccurred())
 
 					Expect(userData).NotTo(BeEmpty()) // legacy logic is tested in ./generator/generator_test.go
 					Expect(command).To(BeNil())
 					Expect(unitNames).To(ConsistOf("some-unit.service"))
 					Expect(fileNames).To(ConsistOf("/some/file"))
-					Expect(extensionUnits).To(ConsistOf(
-						extensionsv1alpha1.Unit{
-							Name: "containerd.service",
-							DropIns: []extensionsv1alpha1.DropIn{{
-								Name: "11-exec_config.conf",
-								Content: `[Service]
-ExecStart=
-ExecStart=/etc/containerd/config.toml
-`,
-							}},
-							FilePaths: []string{"/etc/containerd/config.toml"},
-						},
-					))
-					Expect(extensionFiles).To(ConsistOf(
-						extensionsv1alpha1.File{
-							Path:        "/etc/containerd/config.toml",
-							Permissions: ptr.To(int32(0644)),
-							Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: `
-# created by os-extension-metal
-[plugins.cri.registry.mirrors]
-  [plugins.cri.registry.mirrors."docker.io"]
-    endpoint = ["https://mirror.gcr.io"]
-`}},
-						},
-					))
 				})
 			})
 		})

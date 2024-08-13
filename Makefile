@@ -80,6 +80,28 @@ generate-in-docker: revendor $(HELM) $(YQ)
 				&& make generate \
 				&& chown -R $(shell id -u):$(shell id -g) ."
 
+.PHONY: check-generate
+check-generate:
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-generate.sh $(REPO_ROOT)
+
+.PHONY: check
+check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/...
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-charts.sh ./charts
+
+.PHONY: test
+test:
+	@SKIP_FETCH_TOOLS=1 $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test.sh ./cmd/... ./pkg/...
+
+.PHONY: test-in-docker
+test-in-docker: revendor
+	docker run --rm -i$(DOCKER_TTY_ARG) \
+		--user $$(id -u):$$(id -g) \
+		--mount type=tmpfs,destination=/.cache \
+		--volume $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:$(GO_VERSION) \
+			sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
+					&& make install check test"
+
 .PHONY: docker-image
 docker-image:
 	@docker build --build-arg VERIFY=$(VERIFY) -t $(IMAGE_PREFIX)/os-metal-extension:$(IMAGE_TAG) -f Dockerfile .

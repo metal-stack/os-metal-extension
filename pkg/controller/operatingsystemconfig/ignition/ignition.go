@@ -6,6 +6,7 @@ import (
 
 	"github.com/flatcar/container-linux-config-transpiler/config/types"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
+	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1/helper"
 	"github.com/go-logr/logr"
 	"k8s.io/utils/ptr"
 )
@@ -71,12 +72,17 @@ func ignitionFromOperatingSystemConfig(osc *extensionsv1alpha1.OperatingSystemCo
 			mode = &m
 		}
 
+		inline, err := helper.Decode(f.Content.Inline.Encoding, []byte(f.Content.Inline.Data))
+		if err != nil {
+			return types.Config{}, fmt.Errorf("unable to decode content from osc: %w", err)
+		}
+
 		ignitionFile := types.File{
 			Path:       f.Path,
 			Filesystem: "root",
 			Mode:       mode,
 			Contents: types.FileContents{
-				Inline: string(f.Content.Inline.Data), // TODO: do we need to consider encoding?
+				Inline: string(inline),
 			},
 			Overwrite: ptr.To(true),
 		}

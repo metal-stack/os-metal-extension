@@ -56,6 +56,26 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							},
 							Permissions: ptr.To(int32(0644)),
 						},
+						{
+							Path: "/etc/foo",
+							Content: extensionsv1alpha1.FileContent{
+								Inline: &extensionsv1alpha1.FileContentInline{
+									Data:     "foo",
+									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								},
+							},
+							Permissions: ptr.To(int32(0744)),
+						},
+						{
+							Path: "/etc/bar",
+							Content: extensionsv1alpha1.FileContent{
+								Inline: &extensionsv1alpha1.FileContentInline{
+									Data:     "YmFy",
+									Encoding: string(extensionsv1alpha1.B64FileCodecID),
+								},
+							},
+							Permissions: ptr.To(int32(0744)),
+						},
 					},
 				},
 			},
@@ -67,10 +87,27 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Filesystem: "root",
 							Path:       "/etc/hostname",
 							Contents: types.FileContents{
-								// FIXME here should be testhosts ???
 								Inline: "testhost",
 							},
 							Mode:      ptr.To(0644),
+							Overwrite: ptr.To(true),
+						},
+						{
+							Filesystem: "root",
+							Path:       "/etc/foo",
+							Contents: types.FileContents{
+								Inline: "foo",
+							},
+							Mode:      ptr.To(0744),
+							Overwrite: ptr.To(true),
+						},
+						{
+							Filesystem: "root",
+							Path:       "/etc/bar",
+							Contents: types.FileContents{
+								Inline: "bar",
+							},
+							Mode:      ptr.To(0744),
 							Overwrite: ptr.To(true),
 						},
 					},

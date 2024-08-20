@@ -18,6 +18,7 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig"
@@ -106,10 +107,10 @@ func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolat
 	osc = osc.DeepCopy()
 
 	dnsFiles := additionalDNSConfFiles(networkIsolation.DNSServers)
-	osc.Spec.Files = append(osc.Spec.Files, dnsFiles...)
+	osc.Spec.Files = ensureFile(osc.Spec.Files, dnsFiles...)
 
 	ntpFiles := additionalNTPConfFiles(networkIsolation.NTPServers)
-	osc.Spec.Files = append(osc.Spec.Files, ntpFiles...)
+	osc.Spec.Files = ensureFile(osc.Spec.Files, ntpFiles...)
 
 	if osc.Spec.CRIConfig != nil && osc.Spec.CRIConfig.Name == extensionsv1alpha1.CRINameContainerD {
 		// the debian:12 containerd ships with "cri" plugin disabled, so we need override the config that ships with the os
@@ -117,7 +118,7 @@ func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolat
 		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config.
 		// unfortunately, ignition does not allow to remove files easily.
 		// along with the default import paths. see https://github.com/gardener/gardener/pull/10050)
-		osc.Spec.Files = append(osc.Spec.Files, extensionsv1alpha1.File{
+		osc.Spec.Files = ensureFile(osc.Spec.Files, extensionsv1alpha1.File{
 			Path:        "/etc/containerd/config.toml",
 			Permissions: ptr.To(int32(0644)),
 			Content: extensionsv1alpha1.FileContent{
@@ -129,7 +130,7 @@ func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolat
 		})
 
 		if len(networkIsolation.RegistryMirrors) > 0 {
-			osc.Spec.Files = append(osc.Spec.Files, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
+			osc.Spec.Files = ensureFile(osc.Spec.Files, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
 		}
 	}
 
@@ -233,4 +234,24 @@ NTP=%s
 			},
 		},
 	}
+}
+
+func ensureFile(files []extensionsv1alpha1.File, file ...extensionsv1alpha1.File) []extensionsv1alpha1.File {
+	var res []extensionsv1alpha1.File
+
+	res = append(res, files...)
+
+	for _, f := range file {
+		index := slices.IndexFunc(files, func(elem extensionsv1alpha1.File) bool {
+			return elem.Path == f.Path
+		})
+
+		if index < 0 {
+			res = append(res, f)
+		} else {
+			res[index] = f
+		}
+	}
+
+	return res
 }

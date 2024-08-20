@@ -3,3 +3,4 @@
 os-metal
 vendor
 hack/tools/bin/*
+ginkgo.report

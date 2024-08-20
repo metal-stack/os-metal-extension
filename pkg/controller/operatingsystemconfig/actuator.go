@@ -85,7 +85,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		return nil, nil, nil, nil, nil, nil, fmt.Errorf("could not generate cloud config: %w", err)
 	}
 
-	return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, nil, nil
+	return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), osc.Spec.Units, osc.Spec.Files, nil
 }
 
 func (a *actuator) Delete(_ context.Context, _ logr.Logger, _ *extensionsv1alpha1.OperatingSystemConfig) error {

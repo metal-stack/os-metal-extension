@@ -74,7 +74,7 @@ var _ = Describe("Actuator", func() {
 					Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
 					Expect(command).To(BeNil())
 					Expect(unitNames).To(ConsistOf("some-unit.service"))
-					Expect(fileNames).To(ConsistOf("/some/file"))
+					Expect(fileNames).To(ConsistOf("/some/file", "/etc/containerd/config.toml"))
 					Expect(extensionUnits).To(BeEmpty())
 					Expect(extensionFiles).To(BeEmpty())
 				})
@@ -94,7 +94,7 @@ var _ = Describe("Actuator", func() {
 					Expect(userData).NotTo(BeEmpty()) // legacy logic is tested in ./generator/generator_test.go
 					Expect(command).To(BeNil())
 					Expect(unitNames).To(ConsistOf("some-unit.service"))
-					Expect(fileNames).To(ConsistOf("/some/file"))
+					Expect(fileNames).To(ConsistOf("/some/file", "/etc/containerd/config.toml"))
 				})
 			})
 		})

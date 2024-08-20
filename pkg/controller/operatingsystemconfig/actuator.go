@@ -78,14 +78,15 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		networkIsolation = imageProviderConfig.NetworkIsolation
 	}
 
-	osc = addOsSpecifics(osc, networkIsolation)
+	extensionFiles := addOsSpecifics(osc, networkIsolation)
+	osc.Spec.Files = ensureFile(osc.Spec.Files, extensionFiles...)
 
 	cloudConfig, command, err := oscommonactuator.CloudConfigFromOperatingSystemConfig(ctx, log, a.client, osc, generator.IgnitionGenerator())
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, fmt.Errorf("could not generate cloud config: %w", err)
 	}
 
-	return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), osc.Spec.Units, osc.Spec.Files, nil
+	return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, extensionFiles, nil
 }
 
 func (a *actuator) Delete(_ context.Context, _ logr.Logger, _ *extensionsv1alpha1.OperatingSystemConfig) error {
@@ -104,14 +105,16 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensions
 	return a.Reconcile(ctx, log, osc)
 }
 
-func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolation *metalextensionv1alpha1.NetworkIsolation) *extensionsv1alpha1.OperatingSystemConfig {
-	osc = osc.DeepCopy()
+func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolation *metalextensionv1alpha1.NetworkIsolation) []extensionsv1alpha1.File {
+	var extensionFiles []extensionsv1alpha1.File
 
-	dnsFiles := additionalDNSConfFiles(networkIsolation.DNSServers)
-	osc.Spec.Files = ensureFile(osc.Spec.Files, dnsFiles...)
+	if len(networkIsolation.RegistryMirrors) > 0 {
+		dnsFiles := additionalDNSConfFiles(networkIsolation.DNSServers)
+		extensionFiles = append(extensionFiles, dnsFiles...)
 
-	ntpFiles := additionalNTPConfFiles(networkIsolation.NTPServers)
-	osc.Spec.Files = ensureFile(osc.Spec.Files, ntpFiles...)
+		ntpFiles := additionalNTPConfFiles(networkIsolation.NTPServers)
+		extensionFiles = append(extensionFiles, ntpFiles...)
+	}
 
 	if osc.Spec.CRIConfig != nil && osc.Spec.CRIConfig.Name == extensionsv1alpha1.CRINameContainerD {
 		// the debian:12 containerd ships with "cri" plugin disabled, so we need override the config that ships with the os
@@ -119,7 +122,7 @@ func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolat
 		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config.
 		// unfortunately, ignition does not allow to remove files easily.
 		// along with the default import paths. see https://github.com/gardener/gardener/pull/10050)
-		osc.Spec.Files = ensureFile(osc.Spec.Files, extensionsv1alpha1.File{
+		extensionFiles = ensureFile(extensionFiles, extensionsv1alpha1.File{
 			Path:        "/etc/containerd/config.toml",
 			Permissions: ptr.To(int32(0644)),
 			Content: extensionsv1alpha1.FileContent{
@@ -131,11 +134,11 @@ func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolat
 		})
 
 		if len(networkIsolation.RegistryMirrors) > 0 {
-			osc.Spec.Files = ensureFile(osc.Spec.Files, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
+			extensionFiles = ensureFile(extensionFiles, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
 		}
 	}
 
-	return osc
+	return extensionFiles
 }
 
 // decodeProviderConfig decodes the provider config into the given struct

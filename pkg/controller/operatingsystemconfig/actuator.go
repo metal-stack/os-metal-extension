@@ -78,7 +78,8 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		networkIsolation = imageProviderConfig.NetworkIsolation
 	}
 
-	extensionFiles := addOsSpecifics(osc, networkIsolation)
+	extensionFiles := getExtensionFiles(osc, networkIsolation)
+
 	osc.Spec.Files = ensureFile(osc.Spec.Files, extensionFiles...)
 
 	cloudConfig, command, err := oscommonactuator.CloudConfigFromOperatingSystemConfig(ctx, log, a.client, osc, generator.IgnitionGenerator())
@@ -105,7 +106,7 @@ func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensions
 	return a.Reconcile(ctx, log, osc)
 }
 
-func addOsSpecifics(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolation *metalextensionv1alpha1.NetworkIsolation) []extensionsv1alpha1.File {
+func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIsolation *metalextensionv1alpha1.NetworkIsolation) []extensionsv1alpha1.File {
 	var extensionFiles []extensionsv1alpha1.File
 
 	if len(networkIsolation.RegistryMirrors) > 0 {

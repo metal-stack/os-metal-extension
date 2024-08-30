@@ -314,6 +314,6 @@ disabled_plugins = []
 })
 
 func mustMarshal(data any) []byte {
-	raw, _ := json.Marshal(data)
+	raw, _ := json.Marshal(data) //nolint
 	return raw
 }

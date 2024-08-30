@@ -126,7 +126,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 			}
 
 			if diff := cmp.Diff(got, tt.want); diff != "" {
-				t.Errorf(diff)
+				t.Errorf("diff: %s", diff)
 			}
 		})
 	}

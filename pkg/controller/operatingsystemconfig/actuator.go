@@ -80,7 +80,7 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 
 	extensionFiles := getExtensionFiles(osc, networkIsolation)
 
-	osc.Spec.Files = ensureFile(osc.Spec.Files, extensionFiles...)
+	osc.Spec.Files = EnsureFiles(osc.Spec.Files, extensionFiles...)
 
 	cloudConfig, command, err := oscommonactuator.CloudConfigFromOperatingSystemConfig(ctx, log, a.client, osc, generator.IgnitionGenerator())
 	if err != nil {
@@ -123,7 +123,7 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config.
 		// unfortunately, ignition does not allow to remove files easily.
 		// along with the default import paths. see https://github.com/gardener/gardener/pull/10050)
-		extensionFiles = ensureFile(extensionFiles, extensionsv1alpha1.File{
+		extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
 			Path:        "/etc/containerd/config.toml",
 			Permissions: ptr.To(int32(0644)),
 			Content: extensionsv1alpha1.FileContent{
@@ -135,7 +135,7 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 		})
 
 		if len(networkIsolation.RegistryMirrors) > 0 {
-			extensionFiles = ensureFile(extensionFiles, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
+			extensionFiles = append(extensionFiles, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
 		}
 	}
 
@@ -196,6 +196,9 @@ Domain=~.
 		resolvConf += fmt.Sprintf("nameserver %s\n", ip)
 	}
 
+	// TODO: in osc.Spec.Type we can get the distro "ubuntu", "debian", "nvidia", ...
+	// from this information we should be able to deduce if systemd-resolved is used or not
+
 	return []extensionsv1alpha1.File{
 		{
 			Path: "/etc/systemd/resolved.conf.d/dns.conf",
@@ -241,20 +244,20 @@ NTP=%s
 	}
 }
 
-func ensureFile(files []extensionsv1alpha1.File, file ...extensionsv1alpha1.File) []extensionsv1alpha1.File {
+func EnsureFiles(base []extensionsv1alpha1.File, files ...extensionsv1alpha1.File) []extensionsv1alpha1.File {
 	var res []extensionsv1alpha1.File
 
-	res = append(res, files...)
+	res = append(res, base...)
 
-	for _, f := range file {
-		index := slices.IndexFunc(files, func(elem extensionsv1alpha1.File) bool {
-			return elem.Path == f.Path
+	for _, file := range files {
+		index := slices.IndexFunc(base, func(elem extensionsv1alpha1.File) bool {
+			return elem.Path == file.Path
 		})
 
 		if index < 0 {
-			res = append(res, f)
+			res = append(res, file)
 		} else {
-			res[index] = f
+			res[index] = file
 		}
 	}
 

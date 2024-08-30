@@ -16,19 +16,19 @@ package operatingsystemconfig_test
 
 import (
 	"context"
+	_ "embed"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/gardener/gardener/pkg/utils/test"
 	"github.com/go-logr/logr"
+	. "github.com/metal-stack/os-metal-extension/pkg/controller/operatingsystemconfig"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/utils/ptr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	fakeclient "sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-
-	. "github.com/metal-stack/os-metal-extension/pkg/controller/operatingsystemconfig"
 )
 
 var _ = Describe("Actuator", func() {
@@ -96,6 +96,63 @@ var _ = Describe("Actuator", func() {
 					Expect(unitNames).To(ConsistOf("some-unit.service"))
 					Expect(fileNames).To(ConsistOf("/some/file", "/etc/containerd/config.toml"))
 				})
+			})
+		})
+	})
+
+	When("EnsureFiles", func() {
+		Describe("Ensures files", func() {
+			var (
+				testFile1 = extensionsv1alpha1.File{
+					Path: "/etc/foo",
+					Content: extensionsv1alpha1.FileContent{
+						Inline: &extensionsv1alpha1.FileContentInline{
+							Data: "foo",
+						},
+					},
+				}
+				testFile2 = extensionsv1alpha1.File{
+					Path: "/etc/bar",
+					Content: extensionsv1alpha1.FileContent{
+						Inline: &extensionsv1alpha1.FileContentInline{
+							Data: "bar",
+						},
+					},
+				}
+				testFile3 = extensionsv1alpha1.File{
+					Path: "/etc/bar",
+					Content: extensionsv1alpha1.FileContent{
+						Inline: &extensionsv1alpha1.FileContentInline{
+							Data: "bar different",
+						},
+					},
+				}
+			)
+
+			It("Ensures a single file into empty base", func() {
+				result := EnsureFiles([]extensionsv1alpha1.File{}, testFile1)
+				Expect(result).To(ConsistOf(testFile1))
+			})
+
+			It("Ensures no file into non-empty base", func() {
+				result := EnsureFiles([]extensionsv1alpha1.File{
+					testFile2,
+				})
+				Expect(result).To(ConsistOf(testFile2))
+			})
+
+			It("Ensures a single file into non-empty base", func() {
+				result := EnsureFiles([]extensionsv1alpha1.File{
+					testFile2,
+				}, testFile1)
+				Expect(result).To(ConsistOf(testFile2, testFile1))
+			})
+
+			It("Ensures only single file is added", func() {
+				result := EnsureFiles([]extensionsv1alpha1.File{
+					testFile2,
+				}, testFile3)
+				Expect(result).To(ConsistOf(testFile3))
 			})
 		})
 	})

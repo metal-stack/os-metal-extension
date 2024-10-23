@@ -76,10 +76,7 @@ func ignitionFromOperatingSystemConfig(osc *extensionsv1alpha1.OperatingSystemCo
 			Path:       f.Path,
 			Filesystem: "root",
 			Mode:       mode,
-			// Contents: types.FileContents{
-			// 	Inline: string(inline),
-			// },
-			Overwrite: ptr.To(true),
+			Overwrite:  ptr.To(true),
 		}
 
 		if f.Content.Inline != nil {

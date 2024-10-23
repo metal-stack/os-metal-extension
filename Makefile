@@ -80,7 +80,7 @@ generate-in-docker: tidy $(HELM) $(YQ)
 
 .PHONY: check-generate
 check-generate:
-	@bash $(GARDENER_HACK_DIR)/check-generate.sh $(REPO_ROOT)
+	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-generate.sh $(REPO_ROOT)
 
 .PHONY: check
 check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)

@@ -12,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
+GARDENER_HACK_DIR    		:= $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 REGISTRY                    := ghcr.io
 IMAGE_PREFIX                := $(REGISTRY)/metal-stack
 IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
@@ -27,8 +29,8 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v1.59.1
-GO_VERSION := 1.22
+GOLANGCI_LINT_VERSION := v1.61.0
+GO_VERSION := 1.23
 
 ifeq ($(CI),true)
   DOCKER_TTY_ARG=""
@@ -41,8 +43,8 @@ export GO111MODULE := on
 
 ### Build commands
 
-TOOLS_DIR := hack/tools
--include vendor/github.com/gardener/gardener/hack/tools.mk
+TOOLS_DIR := $(HACK_DIR)/tools
+include $(GARDENER_HACK_DIR)/tools.mk
 
 .PHONY: all
 all:
@@ -52,29 +54,25 @@ all:
 .PHONY: clean
 clean:
 	rm os-metal
+	@$(shell find ./example -type f -name "controller-registration.yaml" -exec rm '{}' \;)
+	@bash $(GARDENER_HACK_DIR)/clean.sh ./cmd/... ./pkg/...
 
 .PHONY: install
-install: revendor $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
+install: tidy $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
 	@LD_FLAGS="-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(VERSION)" \
-	$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/install.sh ./...
+	bash $(GARDENER_HACK_DIR)/install.sh ./...
 
 .PHONY: tidy
 tidy:
 	@GO111MODULE=on go mod tidy
-
-.PHONY: revendor
-revendor:
-	@GO111MODULE=on go mod tidy
-	@GO111MODULE=on go mod vendor
-	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/*
-	@chmod +x $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/.ci/*
+	@mkdir -p $(REPO_ROOT)/.ci/hack && cp $(GARDENER_HACK_DIR)/.ci/* $(REPO_ROOT)/.ci/hack/ && chmod +xw $(REPO_ROOT)/.ci/hack/*
 
 .PHONY: generate
-generate: $(HELM) $(YQ)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
+generate: $(VGOPATH) $(HELM) $(YQ)
+	@REPO_ROOT=$(REPO_ROOT) VGOPATH=$(VGOPATH) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
 
 .PHONE: generate-in-docker
-generate-in-docker: revendor $(HELM) $(YQ)
+generate-in-docker: tidy $(HELM) $(YQ)
 	docker run --rm -it -v $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:$(GO_VERSION) \
 		sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
 				&& make generate \
@@ -86,15 +84,15 @@ check-generate:
 
 .PHONY: check
 check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/...
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-charts.sh ./charts
+	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/...
+	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
 .PHONY: test
 test:
-	@SKIP_FETCH_TOOLS=1 $(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/test.sh ./cmd/... ./pkg/...
+	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./pkg/...
 
 .PHONY: test-in-docker
-test-in-docker: revendor
+test-in-docker: tidy
 	docker run --rm -i$(DOCKER_TTY_ARG) \
 		--user $$(id -u):$$(id -g) \
 		--mount type=tmpfs,destination=/.cache \

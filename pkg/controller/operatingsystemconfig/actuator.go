@@ -244,6 +244,7 @@ NTP=%s
 					Data:     renderedContent,
 				},
 			},
+			Permissions: ptr.To(int32(0644)),
 		},
 	}
 }

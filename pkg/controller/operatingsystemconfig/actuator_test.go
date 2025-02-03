@@ -199,6 +199,7 @@ nameserver 1.0.0.1
 					},
 					extensionsv1alpha1.File{
 						Path: "/etc/systemd/timesyncd.conf",
+						Permissions: ptr.To(int32(420)),
 						Content: extensionsv1alpha1.FileContent{
 							Inline: &extensionsv1alpha1.FileContentInline{
 								Encoding: string(extensionsv1alpha1.PlainFileCodecID),

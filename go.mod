@@ -46,7 +46,6 @@ require (
 	github.com/flatcar/ignition v0.36.2 // indirect
 	github.com/fluent/fluent-operator/v2 v2.9.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
-	github.com/fxamacker/cbor/v2 v2.7.0 // indirect
 	github.com/gardener/cert-management v0.15.0 // indirect
 	github.com/gardener/etcd-druid v0.22.5 // indirect
 	github.com/gardener/hvpa-controller/api v0.17.0 // indirect
@@ -99,7 +98,6 @@ require (
 	github.com/spf13/cast v1.7.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/vincent-petithory/dataurl v1.0.0 // indirect
-	github.com/x448/float16 v0.8.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
@@ -146,7 +144,8 @@ require (
 )
 
 replace (
-	k8s.io/client-go => k8s.io/client-go v0.29.3
+	k8s.io/apimachinery => k8s.io/apimachinery v0.29.9
+	k8s.io/client-go => k8s.io/client-go v0.29.9
 	// for some reason, newer gengo versions will fail with "hit an unsupported type"
 	k8s.io/gengo => k8s.io/gengo v0.0.0-20210813121822-485abfe95c7c // indirect
 )

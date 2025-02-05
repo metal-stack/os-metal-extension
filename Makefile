@@ -91,10 +91,6 @@ check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/...
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
-.PHONY: test
-test:
-	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./pkg/...
-
 .PHONY: test-in-docker
 test-in-docker: tidy
 	docker run --rm -i$(DOCKER_TTY_ARG) \
@@ -102,7 +98,11 @@ test-in-docker: tidy
 		--mount type=tmpfs,destination=/.cache \
 		--volume $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:$(GO_VERSION) \
 			sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
-					&& make install check test"
+					&& make install check test-gardener"
+
+.PHONY: test-gardener
+test-gardener:
+	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./pkg/...
 
 .PHONY: docker-image
 docker-image:

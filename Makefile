@@ -13,7 +13,7 @@
 # limitations under the License.
 
 ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
-GARDENER_HACK_DIR    		:= $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
+GARDENER_HACK_DIR           := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 REGISTRY                    := ghcr.io
 IMAGE_PREFIX                := $(REGISTRY)/metal-stack
 IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
@@ -29,7 +29,7 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v1.61.0
+GOLANGCI_LINT_VERSION := v1.63.4
 GO_VERSION := 1.23
 
 ifeq ($(CI),true)
@@ -46,8 +46,8 @@ export GO111MODULE := on
 TOOLS_DIR := $(HACK_DIR)/tools
 include $(GARDENER_HACK_DIR)/tools.mk
 
-.PHONY: all
-all: test
+.PHONY: build
+build:
 	go build -trimpath -tags netgo -o os-metal cmd/main.go
 	strip os-metal
 

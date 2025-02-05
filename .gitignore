@@ -4,3 +4,4 @@ os-metal
 vendor
 hack/tools/bin/*
 coverage.out
+ginkgo.report

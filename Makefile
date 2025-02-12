@@ -13,7 +13,7 @@
 # limitations under the License.
 
 ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
-GARDENER_HACK_DIR    		:= $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
+GARDENER_HACK_DIR           := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 REGISTRY                    := ghcr.io
 IMAGE_PREFIX                := $(REGISTRY)/metal-stack
 IMAGE_TAG                   := $(or ${GITHUB_TAG_NAME}, latest)
@@ -21,15 +21,16 @@ REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_
 HACK_DIR                    := $(REPO_ROOT)/hack
 HOSTNAME                    := $(shell hostname)
 VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
-LD_FLAGS                    := "-X 'github.com/metal-pod/v.Version=$(VERSION)' \
-								-X 'github.com/metal-pod/v.Revision=$(GITVERSION)' \
-								-X 'github.com/metal-pod/v.GitSHA1=$(SHA)' \
-								-X 'github.com/metal-pod/v.BuildDate=$(BUILDDATE)'"
+LD_FLAGS                    := "-w -s -X 'github.com/metal-stack/v.Version=$(VERSION)' \
+								-X 'github.com/metal-stack/v.Revision=$(GITVERSION)' \
+								-X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
+								-X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)' \
+								-X 'github.com/metal-stack/os-metal-extension/pkg/version.Version=$(IMAGE_TAG)'"
 VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v1.61.0
+GOLANGCI_LINT_VERSION := v1.63.4
 GO_VERSION := 1.23
 
 ifeq ($(CI),true)
@@ -38,7 +39,6 @@ else
   DOCKER_TTY_ARG=t
 endif
 
-CGO_ENABLED := 0
 export GO111MODULE := on
 
 ### Build commands
@@ -46,10 +46,14 @@ export GO111MODULE := on
 TOOLS_DIR := $(HACK_DIR)/tools
 include $(GARDENER_HACK_DIR)/tools.mk
 
-.PHONY: all
-all:
-	go build -trimpath -tags netgo -o os-metal cmd/main.go
+.PHONY: build
+build:
+	CGO_ENABLED=0 go build -ldflags $(LD_FLAGS) -trimpath -tags netgo -o os-metal cmd/main.go
 	strip os-metal
+
+.PHONY: test
+test:
+	go test ./... -race -coverprofile=coverage.out -covermode=atomic && go tool cover -func=coverage.out
 
 .PHONY: clean
 clean:
@@ -87,10 +91,6 @@ check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check.sh --golangci-lint-config=./.golangci.yaml ./cmd/... ./pkg/...
 	@REPO_ROOT=$(REPO_ROOT) bash $(GARDENER_HACK_DIR)/check-charts.sh ./charts
 
-.PHONY: test
-test:
-	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./pkg/...
-
 .PHONY: test-in-docker
 test-in-docker: tidy
 	docker run --rm -i$(DOCKER_TTY_ARG) \
@@ -98,7 +98,11 @@ test-in-docker: tidy
 		--mount type=tmpfs,destination=/.cache \
 		--volume $(PWD):/go/src/github.com/metal-stack/os-metal-extension golang:$(GO_VERSION) \
 			sh -c "cd /go/src/github.com/metal-stack/os-metal-extension \
-					&& make install check test"
+					&& make install check test-gardener"
+
+.PHONY: test-gardener
+test-gardener:
+	@bash $(GARDENER_HACK_DIR)/test.sh ./cmd/... ./pkg/...
 
 .PHONY: docker-image
 docker-image:

@@ -21,10 +21,11 @@ REPO_ROOT                   := $(shell dirname $(realpath $(lastword $(MAKEFILE_
 HACK_DIR                    := $(REPO_ROOT)/hack
 HOSTNAME                    := $(shell hostname)
 VERSION                     := $(shell cat "$(REPO_ROOT)/VERSION")
-LD_FLAGS                    := "-X 'github.com/metal-pod/v.Version=$(VERSION)' \
-								-X 'github.com/metal-pod/v.Revision=$(GITVERSION)' \
-								-X 'github.com/metal-pod/v.GitSHA1=$(SHA)' \
-								-X 'github.com/metal-pod/v.BuildDate=$(BUILDDATE)'"
+LD_FLAGS                    := "-w -s -X 'github.com/metal-stack/v.Version=$(VERSION)' \
+								-X 'github.com/metal-stack/v.Revision=$(GITVERSION)' \
+								-X 'github.com/metal-stack/v.GitSHA1=$(SHA)' \
+								-X 'github.com/metal-stack/v.BuildDate=$(BUILDDATE)' \
+								-X 'github.com/metal-stack/os-metal-extension/pkg/version.Version=$(IMAGE_TAG)'"
 VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
@@ -38,7 +39,6 @@ else
   DOCKER_TTY_ARG=t
 endif
 
-CGO_ENABLED := 0
 export GO111MODULE := on
 
 ### Build commands
@@ -48,7 +48,7 @@ include $(GARDENER_HACK_DIR)/tools.mk
 
 .PHONY: build
 build:
-	go build -trimpath -tags netgo -o os-metal cmd/main.go
+	CGO_ENABLED=0 go build -ldflags $(LD_FLAGS) -tags netgo -o os-metal cmd/main.go
 	strip os-metal
 
 .PHONY: test

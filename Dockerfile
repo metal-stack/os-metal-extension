@@ -1,12 +1,10 @@
-FROM golang:1.23-alpine3.21 AS builder
-RUN apk add make git gcc musl-dev
+FROM golang:1.23 AS builder
+
 WORKDIR /work
 COPY . .
 RUN make build
 
-FROM alpine:3.21 AS base
+FROM gcr.io/distroless/static-debian12:nonroot
 WORKDIR /
-COPY charts /charts
-
 COPY --from=builder /work/os-metal /os-metal
 CMD ["/os-metal"]

@@ -48,7 +48,7 @@ include $(GARDENER_HACK_DIR)/tools.mk
 
 .PHONY: build
 build:
-	CGO_ENABLED=0 go build -ldflags $(LD_FLAGS) -tags netgo -o os-metal cmd/main.go
+	CGO_ENABLED=0 go build -ldflags $(LD_FLAGS) -trimpath -tags netgo -o os-metal cmd/main.go
 	strip os-metal
 
 .PHONY: test

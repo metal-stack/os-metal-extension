@@ -159,7 +159,7 @@ disabled_plugins = []
 
 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
   runtime_type = "io.containerd.runc.v2"
-  `,
+`,
 						},
 					},
 				}))

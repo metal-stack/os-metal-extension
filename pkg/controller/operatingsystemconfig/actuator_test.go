@@ -157,7 +157,7 @@ disabled_plugins = []
 [plugins."io.containerd.grpc.v1.cri".registry]
   config_path = "/etc/containerd/certs.d"
 
-  [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
+[plugins."io.containerd.grpc.v1.cri".containerd.runtimes.runc]
   runtime_type = "io.containerd.runc.v2"
   `,
 						},

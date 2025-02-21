@@ -122,21 +122,18 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 	}
 
 	if osc.Spec.CRIConfig != nil && osc.Spec.CRIConfig.Name == extensionsv1alpha1.CRINameContainerD {
-		// the debian:12 containerd ships with "cri" plugin disabled, so we need override the config that ships with the os
-		//
-		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config.
-		// unfortunately, ignition does not allow to remove files easily.
-		// along with the default import paths. see https://github.com/gardener/gardener/pull/10050)
-		extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
-			Path:        "/etc/containerd/config.toml",
-			Permissions: ptr.To(int32(0644)),
-			Content: extensionsv1alpha1.FileContent{
-				Inline: &extensionsv1alpha1.FileContentInline{
-					Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-					Data:     containerdConfig,
+		if osc.Spec.CRIConfig.CgroupDriver != nil && *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd {
+			extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
+				Path:        "/etc/containerd/config.toml",
+				Permissions: ptr.To(int32(0644)),
+				Content: extensionsv1alpha1.FileContent{
+					Inline: &extensionsv1alpha1.FileContentInline{
+						Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+						Data:     containerdConfig,
+					},
 				},
-			},
-		})
+			})
+		}
 
 		if len(networkIsolation.RegistryMirrors) > 0 {
 			extensionFiles = append(extensionFiles, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)

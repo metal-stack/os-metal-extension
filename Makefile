@@ -30,8 +30,8 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v1.63.4
-GO_VERSION := 1.23
+GOLANGCI_LINT_VERSION := v1.64.4
+GO_VERSION := 1.24
 
 ifeq ($(CI),true)
   DOCKER_TTY_ARG=""

@@ -122,7 +122,7 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 	}
 
 	if osc.Spec.CRIConfig != nil && osc.Spec.CRIConfig.Name == extensionsv1alpha1.CRINameContainerD {
-		if osc.Spec.CRIConfig.CgroupDriver != nil && *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd {
+		if osc.Spec.CRIConfig.CgroupDriver == nil || *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd {
 			extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
 				Path:        "/etc/containerd/config.toml",
 				Permissions: ptr.To(int32(0644)),

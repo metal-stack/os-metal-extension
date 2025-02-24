@@ -162,6 +162,20 @@ disabled_plugins = []
 				}))
 			})
 
+			It("does not render containerd config when cgroup driver systemd is set", func() {
+				oscCopy := osc.DeepCopy()
+				oscCopy.Spec.CRIConfig = &extensionsv1alpha1.CRIConfig{
+					CgroupDriver: ptr.To(extensionsv1alpha1.CgroupDriverSystemd),
+				}
+
+				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, oscCopy)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(userData).To(BeEmpty())
+				Expect(extensionUnits).To(BeNil())
+				Expect(extensionFiles).To(BeEmpty())
+			})
+
 			It("network isolation files are added", func() {
 				osc = osc.DeepCopy()
 				osc.Spec.ProviderConfig = isolatedClusterProviderConfig

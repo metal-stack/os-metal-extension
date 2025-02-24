@@ -109,7 +109,7 @@ var _ = Describe("Actuator", func() {
 				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+				Expect(string(userData)).NotTo(ContainSubstring("/etc/containerd/config.toml"))
 				Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
 				Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
 				Expect(extensionUnits).To(BeEmpty())
@@ -123,7 +123,7 @@ var _ = Describe("Actuator", func() {
 				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+				Expect(string(userData)).NotTo(ContainSubstring("/etc/containerd/config.toml"))
 				Expect(string(userData)).To(ContainSubstring("/etc/resolv.conf"))
 				Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
 				Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
@@ -160,6 +160,20 @@ disabled_plugins = []
 						},
 					},
 				}))
+			})
+
+			It("does not render containerd config when cgroup driver systemd is set", func() {
+				oscCopy := osc.DeepCopy()
+				oscCopy.Spec.CRIConfig = &extensionsv1alpha1.CRIConfig{
+					CgroupDriver: ptr.To(extensionsv1alpha1.CgroupDriverSystemd),
+				}
+
+				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, oscCopy)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(userData).To(BeEmpty())
+				Expect(extensionUnits).To(BeNil())
+				Expect(extensionFiles).To(BeEmpty())
 			})
 
 			It("network isolation files are added", func() {

@@ -124,7 +124,7 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 	if osc.Spec.CRIConfig != nil && osc.Spec.CRIConfig.Name == extensionsv1alpha1.CRINameContainerD {
 		// TODO: as soon as all clusters run at least 1.31 we can remove the containerd config.toml override
 		// the file will be fully managed by the GNA and latest metal-os images render the containerd default config
-		if osc.Spec.CRIConfig.CgroupDriver == nil || *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd {
+		if osc.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeReconcile && (osc.Spec.CRIConfig.CgroupDriver == nil || *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd) {
 			extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
 				Path:        "/etc/containerd/config.toml",
 				Permissions: ptr.To(int32(0644)),

@@ -109,7 +109,7 @@ var _ = Describe("Actuator", func() {
 				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+				Expect(string(userData)).NotTo(ContainSubstring("/etc/containerd/config.toml"))
 				Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
 				Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
 				Expect(extensionUnits).To(BeEmpty())
@@ -123,7 +123,7 @@ var _ = Describe("Actuator", func() {
 				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+				Expect(string(userData)).NotTo(ContainSubstring("/etc/containerd/config.toml"))
 				Expect(string(userData)).To(ContainSubstring("/etc/resolv.conf"))
 				Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
 				Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format

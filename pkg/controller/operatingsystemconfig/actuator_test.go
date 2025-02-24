@@ -41,8 +41,9 @@ var _ = Describe("Actuator", func() {
 		fakeClient client.Client
 		mgr        manager.Manager
 
-		osc      *extensionsv1alpha1.OperatingSystemConfig
-		actuator operatingsystemconfig.Actuator
+		osc                           *extensionsv1alpha1.OperatingSystemConfig
+		isolatedClusterProviderConfig *runtime.RawExtension
+		actuator                      operatingsystemconfig.Actuator
 	)
 
 	BeforeEach(func() {
@@ -59,180 +60,75 @@ var _ = Describe("Actuator", func() {
 				Files:   []extensionsv1alpha1.File{{Path: "/some/file", Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: "bar"}}}},
 			},
 		}
+		isolatedClusterProviderConfig = &runtime.RawExtension{
+			Raw: mustMarshal(&metalextensionv1alpha1.ImageProviderConfig{
+				NetworkIsolation: &metalextensionv1alpha1.NetworkIsolation{
+					AllowedNetworks: metalextensionv1alpha1.AllowedNetworks{
+						Ingress: []string{"10.0.0.1/24"},
+						Egress:  []string{"100.0.0.1/24"},
+					},
+					DNSServers: []string{"1.1.1.1", "1.0.0.1"},
+					NTPServers: []string{"134.60.1.27", "134.60.111.110"},
+					RegistryMirrors: []metalextensionv1alpha1.RegistryMirror{
+						{
+							Name:     "metal-stack registry",
+							Endpoint: "https://r.metal-stack.dev",
+							IP:       "1.2.3.4",
+							Port:     443,
+							MirrorOf: []string{
+								"ghcr.io",
+								"quay.io",
+							},
+						},
+						{
+							Name:     "local registry",
+							Endpoint: "http://localhost:8080",
+							IP:       "127.0.0.1",
+							Port:     8080,
+							MirrorOf: []string{
+								"docker.io",
+							},
+						},
+					},
+				},
+			}),
+		}
 	})
 
-	When("UseGardenerNodeAgent is true", func() {
-		BeforeEach(func() {
-			actuator = NewActuator(mgr)
-		})
+	BeforeEach(func() {
+		actuator = NewActuator(mgr)
+	})
 
+	Describe("#Reconcile", func() {
 		When("purpose is 'provision'", func() {
-			Describe("#Reconcile", func() {
-				It("should not return an error", func() {
-					userData, command, unitNames, fileNames, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
-					Expect(err).NotTo(HaveOccurred())
+			BeforeEach(func() {
+				osc.Spec.Purpose = extensionsv1alpha1.OperatingSystemConfigPurposeProvision
+			})
 
-					Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
-					Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
-					Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
-					Expect(command).To(BeNil())
-					Expect(unitNames).To(ConsistOf("some-unit.service"))
-					Expect(fileNames).To(ConsistOf("/some/file", "/etc/containerd/config.toml"))
-					Expect(extensionUnits).To(BeEmpty())
-					Expect(extensionFiles).To(HaveLen(1))
-				})
+			It("should not return an error", func() {
+				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				Expect(err).NotTo(HaveOccurred())
 
-				It("network isolation files are added", func() {
-					osc = osc.DeepCopy()
-					osc.Spec.ProviderConfig = &runtime.RawExtension{
-						Raw: mustMarshal(&metalextensionv1alpha1.ImageProviderConfig{
-							NetworkIsolation: &metalextensionv1alpha1.NetworkIsolation{
-								AllowedNetworks: metalextensionv1alpha1.AllowedNetworks{
-									Ingress: []string{"10.0.0.1/24"},
-									Egress:  []string{"100.0.0.1/24"},
-								},
-								DNSServers: []string{"1.1.1.1", "1.0.0.1"},
-								NTPServers: []string{"134.60.1.27", "134.60.111.110"},
-								RegistryMirrors: []metalextensionv1alpha1.RegistryMirror{
-									{
-										Name:     "metal-stack registry",
-										Endpoint: "https://r.metal-stack.dev",
-										IP:       "1.2.3.4",
-										Port:     443,
-										MirrorOf: []string{
-											"ghcr.io",
-											"quay.io",
-										},
-									},
-									{
-										Name:     "local registry",
-										Endpoint: "http://localhost:8080",
-										IP:       "127.0.0.1",
-										Port:     8080,
-										MirrorOf: []string{
-											"docker.io",
-										},
-									},
-								},
-							},
-						}),
-					}
+				Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+				Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
+				Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
+				Expect(extensionUnits).To(BeEmpty())
+				Expect(extensionFiles).To(BeEmpty())
+			})
 
-					userData, command, unitNames, fileNames, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
-					Expect(err).NotTo(HaveOccurred())
+			It("network isolation files are added", func() {
+				osc = osc.DeepCopy()
+				osc.Spec.ProviderConfig = isolatedClusterProviderConfig
 
-					Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
-					Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
-					Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
-					Expect(command).To(BeNil())
-					Expect(unitNames).To(ConsistOf("some-unit.service"))
-					Expect(fileNames).To(ConsistOf(
-						"/some/file",
-						"/etc/containerd/config.toml",
-						"/etc/systemd/resolved.conf.d/dns.conf",
-						"/etc/resolv.conf",
-						"/etc/systemd/timesyncd.conf",
-						"/etc/containerd/certs.d/ghcr.io/hosts.toml",
-						"/etc/containerd/certs.d/quay.io/hosts.toml",
-						"/etc/containerd/certs.d/docker.io/hosts.toml",
-					))
-					Expect(extensionUnits).To(BeEmpty())
-					Expect(extensionFiles).To(ConsistOf(
-						extensionsv1alpha1.File{
-							Path: "/etc/systemd/resolved.conf.d/dns.conf",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `# Generated by os-extension-metal
-[Resolve]
-DNS=1.1.1.1 1.0.0.1
-Domain=~.
-`,
-								},
-							},
-						},
-						extensionsv1alpha1.File{
-							Path: "/etc/resolv.conf",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `# Generated by os-extension-metal
-nameserver 1.1.1.1
-nameserver 1.0.0.1
-`,
-								},
-							},
-						},
-						extensionsv1alpha1.File{
-							Path: "/etc/systemd/timesyncd.conf",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `# Generated by os-extension-metal
-[Time]
-NTP=134.60.1.27 134.60.111.110
-`,
-								},
-							},
-						},
-						extensionsv1alpha1.File{
-							Path:        "/etc/containerd/config.toml",
-							Permissions: ptr.To(int32(420)),
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `# Generated by os-extension-metal
-version = 2
-imports = ["/etc/containerd/conf.d/*.toml"]
-disabled_plugins = []
+				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				Expect(err).NotTo(HaveOccurred())
 
-[plugins."io.containerd.grpc.v1.cri".registry]
-  config_path = "/etc/containerd/certs.d"
-`,
-								},
-							},
-						},
-						extensionsv1alpha1.File{
-							Path: "/etc/containerd/certs.d/ghcr.io/hosts.toml",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `server = "https://ghcr.io"
-
-[host."https://r.metal-stack.dev"]
-  capabilities = ["pull", "resolve"]
-`,
-								},
-							},
-						},
-						extensionsv1alpha1.File{
-							Path: "/etc/containerd/certs.d/quay.io/hosts.toml",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `server = "https://quay.io"
-
-[host."https://r.metal-stack.dev"]
-  capabilities = ["pull", "resolve"]
-`,
-								},
-							},
-						},
-						extensionsv1alpha1.File{
-							Path: "/etc/containerd/certs.d/docker.io/hosts.toml",
-							Content: extensionsv1alpha1.FileContent{
-								Inline: &extensionsv1alpha1.FileContentInline{
-									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-									Data: `server = "https://docker.io"
-
-[host."http://localhost:8080"]
-  capabilities = ["pull", "resolve"]
-`,
-								},
-							},
-						},
-					))
-				})
+				Expect(string(userData)).To(ContainSubstring("/etc/containerd/config.toml"))
+				Expect(string(userData)).To(ContainSubstring("/etc/resolv.conf"))
+				Expect(string(userData)).To(HavePrefix("{")) // check we have ignition format
+				Expect(string(userData)).To(HaveSuffix("}")) // check we have ignition format
+				Expect(extensionUnits).To(BeEmpty())
+				Expect(extensionFiles).To(BeEmpty())
 			})
 		})
 
@@ -241,16 +137,136 @@ disabled_plugins = []
 				osc.Spec.Purpose = extensionsv1alpha1.OperatingSystemConfigPurposeReconcile
 			})
 
-			Describe("#Reconcile", func() {
-				It("should not return an error", func() {
-					userData, command, unitNames, fileNames, _, _, err := actuator.Reconcile(ctx, log, osc)
-					Expect(err).NotTo(HaveOccurred())
+			It("should not return an error", func() {
+				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				Expect(err).NotTo(HaveOccurred())
 
-					Expect(userData).NotTo(BeEmpty()) // legacy logic is tested in ./generator/generator_test.go
-					Expect(command).To(BeNil())
-					Expect(unitNames).To(ConsistOf("some-unit.service"))
-					Expect(fileNames).To(ConsistOf("/some/file", "/etc/containerd/config.toml"))
-				})
+				Expect(userData).To(BeEmpty())
+				Expect(extensionUnits).To(BeNil())
+				Expect(extensionFiles).To(ConsistOf(extensionsv1alpha1.File{
+					Path:        "/etc/containerd/config.toml",
+					Permissions: ptr.To(int32(420)),
+					Content: extensionsv1alpha1.FileContent{
+						Inline: &extensionsv1alpha1.FileContentInline{
+							Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+							Data: `# Generated by os-extension-metal
+version = 2
+imports = ["/etc/containerd/conf.d/*.toml"]
+disabled_plugins = []
+
+[plugins."io.containerd.grpc.v1.cri".registry]
+  config_path = "/etc/containerd/certs.d"
+`,
+						},
+					},
+				}))
+			})
+
+			It("network isolation files are added", func() {
+				osc = osc.DeepCopy()
+				osc.Spec.ProviderConfig = isolatedClusterProviderConfig
+
+				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(string(userData)).To(BeEmpty())
+				Expect(extensionUnits).To(BeEmpty())
+				Expect(extensionFiles).To(ConsistOf(
+					extensionsv1alpha1.File{
+						Path: "/etc/systemd/resolved.conf.d/dns.conf",
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `# Generated by os-extension-metal
+[Resolve]
+DNS=1.1.1.1 1.0.0.1
+Domain=~.
+`,
+							},
+						},
+					},
+					extensionsv1alpha1.File{
+						Path: "/etc/resolv.conf",
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `# Generated by os-extension-metal
+nameserver 1.1.1.1
+nameserver 1.0.0.1
+`,
+							},
+						},
+					},
+					extensionsv1alpha1.File{
+						Path:        "/etc/systemd/timesyncd.conf",
+						Permissions: ptr.To(int32(0644)),
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `# Generated by os-extension-metal
+[Time]
+NTP=134.60.1.27 134.60.111.110
+`,
+							},
+						},
+					},
+					extensionsv1alpha1.File{
+						Path:        "/etc/containerd/config.toml",
+						Permissions: ptr.To(int32(420)),
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `# Generated by os-extension-metal
+version = 2
+imports = ["/etc/containerd/conf.d/*.toml"]
+disabled_plugins = []
+
+[plugins."io.containerd.grpc.v1.cri".registry]
+  config_path = "/etc/containerd/certs.d"
+`,
+							},
+						},
+					},
+					extensionsv1alpha1.File{
+						Path: "/etc/containerd/certs.d/ghcr.io/hosts.toml",
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `server = "https://ghcr.io"
+
+[host."https://r.metal-stack.dev"]
+  capabilities = ["pull", "resolve"]
+`,
+							},
+						},
+					},
+					extensionsv1alpha1.File{
+						Path: "/etc/containerd/certs.d/quay.io/hosts.toml",
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `server = "https://quay.io"
+
+[host."https://r.metal-stack.dev"]
+  capabilities = ["pull", "resolve"]
+`,
+							},
+						},
+					},
+					extensionsv1alpha1.File{
+						Path: "/etc/containerd/certs.d/docker.io/hosts.toml",
+						Content: extensionsv1alpha1.FileContent{
+							Inline: &extensionsv1alpha1.FileContentInline{
+								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+								Data: `server = "https://docker.io"
+
+[host."http://localhost:8080"]
+  capabilities = ["pull", "resolve"]
+`,
+							},
+						},
+					},
+				))
 			})
 		})
 	})

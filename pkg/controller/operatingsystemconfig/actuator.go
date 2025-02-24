@@ -22,12 +22,11 @@ import (
 	"strings"
 
 	"github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig"
-	oscommonactuator "github.com/gardener/gardener/extensions/pkg/controller/operatingsystemconfig/oscommon/actuator"
 	gardenv1beta1 "github.com/gardener/gardener/pkg/apis/core/v1beta1"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	metalextensionv1alpha1 "github.com/metal-stack/gardener-extension-provider-metal/pkg/apis/metal/v1alpha1"
-	"github.com/metal-stack/os-metal-extension/pkg/controller/operatingsystemconfig/generator"
+	"github.com/metal-stack/os-metal-extension/pkg/controller/operatingsystemconfig/ignition"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -64,14 +63,14 @@ func NewActuator(mgr manager.Manager) operatingsystemconfig.Actuator {
 	}
 }
 
-func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, []string, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
 	imageProviderConfig := &metalextensionv1alpha1.ImageProviderConfig{}
 
 	networkIsolation := &metalextensionv1alpha1.NetworkIsolation{}
 	if osc.Spec.ProviderConfig != nil {
 		err := decodeProviderConfig(a.decoder, osc.Spec.ProviderConfig, imageProviderConfig)
 		if err != nil {
-			return nil, nil, nil, nil, nil, nil, fmt.Errorf("unable to decode providerConfig")
+			return nil, nil, nil, fmt.Errorf("unable to decode providerConfig")
 		}
 	}
 	if imageProviderConfig.NetworkIsolation != nil {
@@ -80,14 +79,19 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 
 	extensionFiles := getExtensionFiles(osc, networkIsolation)
 
-	osc.Spec.Files = EnsureFiles(osc.Spec.Files, extensionFiles...)
+	switch purpose := osc.Spec.Purpose; purpose {
+	case extensionsv1alpha1.OperatingSystemConfigPurposeProvision:
+		osc := osc.DeepCopy()
+		osc.Spec.Files = EnsureFiles(osc.Spec.Files, extensionFiles...)
 
-	cloudConfig, command, err := oscommonactuator.CloudConfigFromOperatingSystemConfig(ctx, log, a.client, osc, generator.IgnitionGenerator())
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("could not generate cloud config: %w", err)
+		userData, err := ignition.New(log).Transpile(osc)
+		return userData, nil, nil, err
+
+	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
+		return nil, nil, extensionFiles, nil
+	default:
+		return nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
 	}
-
-	return cloudConfig, command, oscommonactuator.OperatingSystemConfigUnitNames(osc), oscommonactuator.OperatingSystemConfigFilePaths(osc), nil, extensionFiles, nil
 }
 
 func (a *actuator) Delete(_ context.Context, _ logr.Logger, _ *extensionsv1alpha1.OperatingSystemConfig) error {
@@ -102,7 +106,7 @@ func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, osc *extens
 	return a.Delete(ctx, log, osc)
 }
 
-func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, *string, []string, []string, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
 	return a.Reconcile(ctx, log, osc)
 }
 
@@ -240,6 +244,7 @@ NTP=%s
 					Data:     renderedContent,
 				},
 			},
+			Permissions: ptr.To(int32(0644)),
 		},
 	}
 }

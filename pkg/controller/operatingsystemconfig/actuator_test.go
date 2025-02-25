@@ -241,45 +241,6 @@ disabled_plugins = []
 							},
 						},
 					},
-					extensionsv1alpha1.File{
-						Path: "/etc/containerd/certs.d/ghcr.io/hosts.toml",
-						Content: extensionsv1alpha1.FileContent{
-							Inline: &extensionsv1alpha1.FileContentInline{
-								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-								Data: `server = "https://ghcr.io"
-
-[host."https://r.metal-stack.dev"]
-  capabilities = ["pull", "resolve"]
-`,
-							},
-						},
-					},
-					extensionsv1alpha1.File{
-						Path: "/etc/containerd/certs.d/quay.io/hosts.toml",
-						Content: extensionsv1alpha1.FileContent{
-							Inline: &extensionsv1alpha1.FileContentInline{
-								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-								Data: `server = "https://quay.io"
-
-[host."https://r.metal-stack.dev"]
-  capabilities = ["pull", "resolve"]
-`,
-							},
-						},
-					},
-					extensionsv1alpha1.File{
-						Path: "/etc/containerd/certs.d/docker.io/hosts.toml",
-						Content: extensionsv1alpha1.FileContent{
-							Inline: &extensionsv1alpha1.FileContentInline{
-								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-								Data: `server = "https://docker.io"
-
-[host."http://localhost:8080"]
-  capabilities = ["pull", "resolve"]
-`,
-							},
-						},
-					},
 				))
 			})
 		})

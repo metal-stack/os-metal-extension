@@ -136,10 +136,6 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 				},
 			})
 		}
-
-		if len(networkIsolation.RegistryMirrors) > 0 {
-			extensionFiles = append(extensionFiles, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
-		}
 	}
 
 	return extensionFiles
@@ -156,32 +152,6 @@ func decodeProviderConfig(decoder runtime.Decoder, providerConfig *runtime.RawEx
 	}
 
 	return nil
-}
-
-func additionalContainerdMirrors(mirrors []metalextensionv1alpha1.RegistryMirror) []extensionsv1alpha1.File {
-	var files []extensionsv1alpha1.File
-
-	for _, m := range mirrors {
-		for _, of := range m.MirrorOf {
-			content := fmt.Sprintf(`server = "https://%s"
-
-[host.%q]
-  capabilities = ["pull", "resolve"]
-`, of, m.Endpoint)
-
-			files = append(files, extensionsv1alpha1.File{
-				Path: fmt.Sprintf("/etc/containerd/certs.d/%s/hosts.toml", of),
-				Content: extensionsv1alpha1.FileContent{
-					Inline: &extensionsv1alpha1.FileContentInline{
-						Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-						Data:     content,
-					},
-				},
-			})
-		}
-	}
-
-	return files
 }
 
 func additionalDNSConfFiles(dnsServers []string) []extensionsv1alpha1.File {

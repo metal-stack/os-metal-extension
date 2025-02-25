@@ -1,5 +1,6 @@
 .idea/
 .vscode/
+.ci
 os-metal
 vendor
 hack/tools/bin/*

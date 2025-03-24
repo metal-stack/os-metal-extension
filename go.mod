@@ -1,6 +1,6 @@
 module github.com/metal-stack/os-metal-extension
 
-go 1.24.0
+go 1.24
 
 require (
 	github.com/ahmetb/gen-crd-api-reference-docs v0.3.0

@@ -40,7 +40,7 @@ jobs:
     - name: Lint
       uses: golangci/golangci-lint-action@v8
       with:
-        args: --build-tags integration -p bugs -p unused -D protogetter --timeout=5m
+        args: --build-tags integration -D protogetter --timeout=5m
 
     - name: Docker meta
       id: meta

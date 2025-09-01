@@ -63,14 +63,14 @@ func NewActuator(mgr manager.Manager) operatingsystemconfig.Actuator {
 	}
 }
 
-func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, *extensionsv1alpha1.InPlaceUpdatesStatus, error) {
 	imageProviderConfig := &metalextensionv1alpha1.ImageProviderConfig{}
 
 	networkIsolation := &metalextensionv1alpha1.NetworkIsolation{}
 	if osc.Spec.ProviderConfig != nil {
 		err := decodeProviderConfig(a.decoder, osc.Spec.ProviderConfig, imageProviderConfig)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("unable to decode providerConfig")
+			return nil, nil, nil, nil, fmt.Errorf("unable to decode providerConfig")
 		}
 	}
 	if imageProviderConfig.NetworkIsolation != nil {
@@ -85,12 +85,12 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		osc.Spec.Files = EnsureFiles(osc.Spec.Files, extensionFiles...)
 
 		userData, err := ignition.New(log).Transpile(osc)
-		return userData, nil, nil, err
+		return userData, nil, nil, nil, err
 
 	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
-		return nil, nil, extensionFiles, nil
+		return nil, nil, extensionFiles, nil, nil
 	default:
-		return nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
+		return nil, nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
 	}
 }
 
@@ -106,7 +106,7 @@ func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, osc *extens
 	return a.Delete(ctx, log, osc)
 }
 
-func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, *extensionsv1alpha1.InPlaceUpdatesStatus, error) {
 	return a.Reconcile(ctx, log, osc)
 }
 
@@ -134,7 +134,7 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 		if osc.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeReconcile && (osc.Spec.CRIConfig.CgroupDriver == nil || *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd) {
 			extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
 				Path:        "/etc/containerd/config.toml",
-				Permissions: ptr.To(int32(0644)),
+				Permissions: ptr.To(uint32(0644)),
 				Content: extensionsv1alpha1.FileContent{
 					Inline: &extensionsv1alpha1.FileContentInline{
 						Encoding: string(extensionsv1alpha1.PlainFileCodecID),
@@ -250,7 +250,7 @@ NTP=%s
 					Data:     renderedContent,
 				},
 			},
-			Permissions: ptr.To(int32(0644)),
+			Permissions: ptr.To(uint32(0644)),
 		},
 	}
 }

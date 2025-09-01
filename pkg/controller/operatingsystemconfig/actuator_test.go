@@ -106,7 +106,7 @@ var _ = Describe("Actuator", func() {
 			})
 
 			It("should not return an error", func() {
-				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				userData, extensionUnits, extensionFiles, _, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(userData)).NotTo(ContainSubstring("/etc/containerd/config.toml"))
@@ -120,7 +120,7 @@ var _ = Describe("Actuator", func() {
 				osc = osc.DeepCopy()
 				osc.Spec.ProviderConfig = isolatedClusterProviderConfig
 
-				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				userData, extensionUnits, extensionFiles, _, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(userData)).NotTo(ContainSubstring("/etc/containerd/config.toml"))
@@ -138,14 +138,14 @@ var _ = Describe("Actuator", func() {
 			})
 
 			It("should not return an error", func() {
-				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				userData, extensionUnits, extensionFiles, _, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(userData).To(BeEmpty())
 				Expect(extensionUnits).To(BeNil())
 				Expect(extensionFiles).To(ConsistOf(extensionsv1alpha1.File{
 					Path:        "/etc/containerd/config.toml",
-					Permissions: ptr.To(int32(420)),
+					Permissions: ptr.To(uint32(420)),
 					Content: extensionsv1alpha1.FileContent{
 						Inline: &extensionsv1alpha1.FileContentInline{
 							Encoding: string(extensionsv1alpha1.PlainFileCodecID),
@@ -168,7 +168,7 @@ disabled_plugins = []
 					CgroupDriver: ptr.To(extensionsv1alpha1.CgroupDriverSystemd),
 				}
 
-				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, oscCopy)
+				userData, extensionUnits, extensionFiles, _, err := actuator.Reconcile(ctx, log, oscCopy)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(userData).To(BeEmpty())
@@ -180,7 +180,7 @@ disabled_plugins = []
 				osc = osc.DeepCopy()
 				osc.Spec.ProviderConfig = isolatedClusterProviderConfig
 
-				userData, extensionUnits, extensionFiles, err := actuator.Reconcile(ctx, log, osc)
+				userData, extensionUnits, extensionFiles, _, err := actuator.Reconcile(ctx, log, osc)
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(string(userData)).To(BeEmpty())
@@ -213,7 +213,7 @@ nameserver 1.0.0.1
 					},
 					extensionsv1alpha1.File{
 						Path:        "/etc/systemd/timesyncd.conf",
-						Permissions: ptr.To(int32(0644)),
+						Permissions: ptr.To(uint32(0644)),
 						Content: extensionsv1alpha1.FileContent{
 							Inline: &extensionsv1alpha1.FileContentInline{
 								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
@@ -226,7 +226,7 @@ NTP=134.60.1.27 134.60.111.110
 					},
 					extensionsv1alpha1.File{
 						Path:        "/etc/containerd/config.toml",
-						Permissions: ptr.To(int32(420)),
+						Permissions: ptr.To(uint32(420)),
 						Content: extensionsv1alpha1.FileContent{
 							Inline: &extensionsv1alpha1.FileContentInline{
 								Encoding: string(extensionsv1alpha1.PlainFileCodecID),

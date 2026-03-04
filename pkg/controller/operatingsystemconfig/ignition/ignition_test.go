@@ -55,7 +55,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 									Data: "testhost",
 								},
 							},
-							Permissions: ptr.To(int32(0644)),
+							Permissions: ptr.To(uint32(0644)),
 						},
 						{
 							Path: "/etc/foo",
@@ -65,7 +65,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
 								},
 							},
-							Permissions: ptr.To(int32(0744)),
+							Permissions: ptr.To(uint32(0744)),
 						},
 						{
 							Path: "/etc/bar",
@@ -75,7 +75,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 									Encoding: string(extensionsv1alpha1.B64FileCodecID),
 								},
 							},
-							Permissions: ptr.To(int32(0744)),
+							Permissions: ptr.To(uint32(0744)),
 						},
 					},
 				},

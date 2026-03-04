@@ -63,14 +63,14 @@ func NewActuator(mgr manager.Manager) operatingsystemconfig.Actuator {
 	}
 }
 
-func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, *extensionsv1alpha1.InPlaceUpdatesStatus, error) {
 	imageProviderConfig := &metalextensionv1alpha1.ImageProviderConfig{}
 
 	networkIsolation := &metalextensionv1alpha1.NetworkIsolation{}
 	if osc.Spec.ProviderConfig != nil {
 		err := decodeProviderConfig(a.decoder, osc.Spec.ProviderConfig, imageProviderConfig)
 		if err != nil {
-			return nil, nil, nil, fmt.Errorf("unable to decode providerConfig")
+			return nil, nil, nil, nil, fmt.Errorf("unable to decode providerConfig")
 		}
 	}
 	if imageProviderConfig.NetworkIsolation != nil {
@@ -85,12 +85,12 @@ func (a *actuator) Reconcile(ctx context.Context, log logr.Logger, osc *extensio
 		osc.Spec.Files = EnsureFiles(osc.Spec.Files, extensionFiles...)
 
 		userData, err := ignition.New(log).Transpile(osc)
-		return userData, nil, nil, err
+		return userData, nil, nil, nil, err
 
 	case extensionsv1alpha1.OperatingSystemConfigPurposeReconcile:
-		return nil, nil, extensionFiles, nil
+		return nil, nil, extensionFiles, nil, nil
 	default:
-		return nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
+		return nil, nil, nil, nil, fmt.Errorf("unknown purpose: %s", purpose)
 	}
 }
 
@@ -106,7 +106,7 @@ func (a *actuator) ForceDelete(ctx context.Context, log logr.Logger, osc *extens
 	return a.Delete(ctx, log, osc)
 }
 
-func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, error) {
+func (a *actuator) Restore(ctx context.Context, log logr.Logger, osc *extensionsv1alpha1.OperatingSystemConfig) ([]byte, []extensionsv1alpha1.Unit, []extensionsv1alpha1.File, *extensionsv1alpha1.InPlaceUpdatesStatus, error) {
 	return a.Reconcile(ctx, log, osc)
 }
 
@@ -114,6 +114,13 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 	var extensionFiles []extensionsv1alpha1.File
 
 	if len(networkIsolation.RegistryMirrors) > 0 {
+		// TODO: this is only required for backwards-compatibility before we started to create worker machines with DNS and NTP configuration through metal-stack
+		// otherwise existing machines would lose connectivity because the GNA cleans up the dns and ntp definitions
+		// references https://github.com/metal-stack/gardener-extension-provider-metal/issues/433
+		//
+		// can potentially be cleaned up as soon as there are no worker nodes of isolated clusters anymore that were created without dns and ntp configuration
+		// ideally a point in time should be defined when we add the dns and ntp to the worker hashes to enforce the setting
+
 		dnsFiles := additionalDNSConfFiles(networkIsolation.DNSServers)
 		extensionFiles = append(extensionFiles, dnsFiles...)
 
@@ -122,21 +129,20 @@ func getExtensionFiles(osc *extensionsv1alpha1.OperatingSystemConfig, networkIso
 	}
 
 	if osc.Spec.CRIConfig != nil && osc.Spec.CRIConfig.Name == extensionsv1alpha1.CRINameContainerD {
-		// the debian:12 containerd ships with "cri" plugin disabled, so we need override the config that ships with the os
-		//
-		// with g/g v1.100 it would be best to just remove the config.toml and let the GNA generate the default config.
-		// unfortunately, ignition does not allow to remove files easily.
-		// along with the default import paths. see https://github.com/gardener/gardener/pull/10050)
-		extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
-			Path:        "/etc/containerd/config.toml",
-			Permissions: ptr.To(int32(0644)),
-			Content: extensionsv1alpha1.FileContent{
-				Inline: &extensionsv1alpha1.FileContentInline{
-					Encoding: string(extensionsv1alpha1.PlainFileCodecID),
-					Data:     containerdConfig,
+		// TODO: as soon as all clusters run at least 1.31 we can remove the containerd config.toml override
+		// the file will be fully managed by the GNA and latest metal-os images render the containerd default config
+		if osc.Spec.Purpose == extensionsv1alpha1.OperatingSystemConfigPurposeReconcile && (osc.Spec.CRIConfig.CgroupDriver == nil || *osc.Spec.CRIConfig.CgroupDriver != extensionsv1alpha1.CgroupDriverSystemd) {
+			extensionFiles = append(extensionFiles, extensionsv1alpha1.File{
+				Path:        "/etc/containerd/config.toml",
+				Permissions: ptr.To(uint32(0644)),
+				Content: extensionsv1alpha1.FileContent{
+					Inline: &extensionsv1alpha1.FileContentInline{
+						Encoding: string(extensionsv1alpha1.PlainFileCodecID),
+						Data:     containerdConfig,
+					},
 				},
-			},
-		})
+			})
+		}
 
 		if len(networkIsolation.RegistryMirrors) > 0 {
 			extensionFiles = append(extensionFiles, additionalContainerdMirrors(networkIsolation.RegistryMirrors)...)
@@ -244,7 +250,7 @@ NTP=%s
 					Data:     renderedContent,
 				},
 			},
-			Permissions: ptr.To(int32(0644)),
+			Permissions: ptr.To(uint32(0644)),
 		},
 	}
 }

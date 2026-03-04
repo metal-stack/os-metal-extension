@@ -7,7 +7,6 @@ import (
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
-	"k8s.io/utils/ptr"
 )
 
 func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
@@ -24,7 +23,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 					Units: []extensionsv1alpha1.Unit{
 						{
 							Name:    "kubelet.service",
-							Content: ptr.To("[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet"),
+							Content: new("[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet"),
 						},
 					},
 				},
@@ -36,7 +35,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 						{
 							Name:     "kubelet.service",
 							Contents: "[Unit]\nDescription=kubelet\n[Install]\nWantedBy=multi-user.target\n[Service]\nExecStart=/bin/kubelet",
-							Enabled:  ptr.To(true),
+							Enabled:  new(true),
 						},
 					},
 				},
@@ -55,7 +54,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 									Data: "testhost",
 								},
 							},
-							Permissions: ptr.To(uint32(0644)),
+							Permissions: new(uint32(0644)),
 						},
 						{
 							Path: "/etc/foo",
@@ -65,7 +64,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 									Encoding: string(extensionsv1alpha1.PlainFileCodecID),
 								},
 							},
-							Permissions: ptr.To(uint32(0744)),
+							Permissions: new(uint32(0744)),
 						},
 						{
 							Path: "/etc/bar",
@@ -75,7 +74,7 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 									Encoding: string(extensionsv1alpha1.B64FileCodecID),
 								},
 							},
-							Permissions: ptr.To(uint32(0744)),
+							Permissions: new(uint32(0744)),
 						},
 					},
 				},
@@ -90,8 +89,8 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Contents: types.FileContents{
 								Inline: "testhost",
 							},
-							Mode:      ptr.To(0644),
-							Overwrite: ptr.To(true),
+							Mode:      new(0644),
+							Overwrite: new(true),
 						},
 						{
 							Filesystem: "root",
@@ -99,8 +98,8 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Contents: types.FileContents{
 								Inline: "foo",
 							},
-							Mode:      ptr.To(0744),
-							Overwrite: ptr.To(true),
+							Mode:      new(0744),
+							Overwrite: new(true),
 						},
 						{
 							Filesystem: "root",
@@ -108,8 +107,8 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 							Contents: types.FileContents{
 								Inline: "bar",
 							},
-							Mode:      ptr.To(0744),
-							Overwrite: ptr.To(true),
+							Mode:      new(0744),
+							Overwrite: new(true),
 						},
 					},
 				},
@@ -117,7 +116,6 @@ func TestIgnitionFromOperatingSystemConfig(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := ignitionFromOperatingSystemConfig(tt.config)
 			if (err != nil) != tt.wantErr {

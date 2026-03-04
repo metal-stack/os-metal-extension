@@ -56,7 +56,7 @@ var _ = Describe("Actuator", func() {
 					Name: "containerd",
 				},
 				Purpose: extensionsv1alpha1.OperatingSystemConfigPurposeProvision,
-				Units:   []extensionsv1alpha1.Unit{{Name: "some-unit.service", Content: ptr.To("foo")}},
+				Units:   []extensionsv1alpha1.Unit{{Name: "some-unit.service", Content: new("foo")}},
 				Files:   []extensionsv1alpha1.File{{Path: "/some/file", Content: extensionsv1alpha1.FileContent{Inline: &extensionsv1alpha1.FileContentInline{Data: "bar"}}}},
 			},
 		}
@@ -145,7 +145,7 @@ var _ = Describe("Actuator", func() {
 				Expect(extensionUnits).To(BeNil())
 				Expect(extensionFiles).To(ConsistOf(extensionsv1alpha1.File{
 					Path:        "/etc/containerd/config.toml",
-					Permissions: ptr.To(uint32(420)),
+					Permissions: new(uint32(420)),
 					Content: extensionsv1alpha1.FileContent{
 						Inline: &extensionsv1alpha1.FileContentInline{
 							Encoding: string(extensionsv1alpha1.PlainFileCodecID),
@@ -213,7 +213,7 @@ nameserver 1.0.0.1
 					},
 					extensionsv1alpha1.File{
 						Path:        "/etc/systemd/timesyncd.conf",
-						Permissions: ptr.To(uint32(0644)),
+						Permissions: new(uint32(0644)),
 						Content: extensionsv1alpha1.FileContent{
 							Inline: &extensionsv1alpha1.FileContentInline{
 								Encoding: string(extensionsv1alpha1.PlainFileCodecID),
@@ -226,7 +226,7 @@ NTP=134.60.1.27 134.60.111.110
 					},
 					extensionsv1alpha1.File{
 						Path:        "/etc/containerd/config.toml",
-						Permissions: ptr.To(uint32(420)),
+						Permissions: new(uint32(420)),
 						Content: extensionsv1alpha1.FileContent{
 							Inline: &extensionsv1alpha1.FileContentInline{
 								Encoding: string(extensionsv1alpha1.PlainFileCodecID),

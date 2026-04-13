@@ -53,7 +53,7 @@ func ignitionFromOperatingSystemConfig(osc *extensionsv1alpha1.OperatingSystemCo
 		unit := types.SystemdUnit{
 			Contents: ptr.Deref(u.Content, ""),
 			Name:     u.Name,
-			Enabled:  ptr.To(true),
+			Enabled:  new(true),
 		}
 		for _, dr := range u.DropIns {
 			unit.Dropins = append(unit.Dropins, types.SystemdUnitDropIn{
@@ -76,7 +76,7 @@ func ignitionFromOperatingSystemConfig(osc *extensionsv1alpha1.OperatingSystemCo
 			Path:       f.Path,
 			Filesystem: "root",
 			Mode:       mode,
-			Overwrite:  ptr.To(true),
+			Overwrite:  new(true),
 		}
 
 		if f.Content.Inline != nil {

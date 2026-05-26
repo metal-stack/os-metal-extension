@@ -22,9 +22,9 @@ rules:
   - patch
   - update
 - apiGroups:
-  - extensions.gardener.cloud
+  - ""
   resources:
-  - dnsrecords
+  - namespaces
   verbs:
   - get
   - list
@@ -70,6 +70,18 @@ rules:
   - list
   - update
   - patch
+- apiGroups:
+  - admissionregistration.k8s.io
+  resources:
+  - mutatingwebhookconfigurations
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

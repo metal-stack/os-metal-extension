@@ -1,6 +1,6 @@
 # Gardener Extension for S3 Compatible Storage
 
-[![GitHub License](https://img.shields.io/github/license/metal-stack/os-metal-extension)](https://github.com/metal-stack/os-metal-extension/blob/master/LICENSE)
+[![GitHub License](https://img.shields.io/github/license/metal-stack/os-metal-extension)](https://github.com/metal-stack/os-metal-extension/blob/master/LICENCE)
 [![Build](https://github.com/metal-stack/os-metal-extension/actions/workflows/build.yaml/badge.svg)](https://github.com/metal-stack/os-metal-extension/actions/workflows/build.yaml)
 
 This controller operates on the [`OperatingSystemConfig`](https://github.com/gardener/gardener/blob/master/docs/proposals/01-extensibility.md#cloud-config-user-data-for-bootstrapping-machines) resource in the `extensions.gardener.cloud/v1alpha1` API group. It manages those objects that are requesting:

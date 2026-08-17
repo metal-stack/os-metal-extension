@@ -1,0 +1,33 @@
+---
+name: metal-stack component release
+
+on:
+  pull_request:
+    branches:
+      - master
+  release:
+    types:
+      - published
+  push:
+    branches:
+      - master
+
+jobs:
+  draft:
+    uses: metal-stack/actions-common/.github/workflows/release-drafter.yaml@v1
+
+  go-build:
+    uses: metal-stack/actions-common/.github/workflows/go-build.yaml@v1
+    secrets: inherit
+    with:
+      build-command: make build
+      test-command: |
+        mkdir -p hack/tools/bin
+        make test-in-docker
+
+  extension-helm-chart:
+    uses:  metal-stack/actions-common/.github/workflows/helm-chart.yaml@v1
+    secrets: inherit
+    with:
+      chart-path: charts/os-metal
+      container-image-values-patch: image.tag

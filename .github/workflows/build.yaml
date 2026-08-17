@@ -4,13 +4,13 @@ name: metal-stack component release
 on:
   pull_request:
     branches:
-      - main
+      - master
   release:
     types:
       - published
   push:
     branches:
-      - main
+      - master
 
 jobs:
   draft:

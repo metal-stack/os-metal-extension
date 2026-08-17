@@ -1,4 +1,4 @@
-# Gardener Extension for S3 Compatible Storage
+# os-metal-extension
 
 [![GitHub License](https://img.shields.io/github/license/metal-stack/os-metal-extension)](https://github.com/metal-stack/os-metal-extension/blob/master/LICENCE)
 [![Build](https://github.com/metal-stack/os-metal-extension/actions/workflows/build.yaml/badge.svg)](https://github.com/metal-stack/os-metal-extension/actions/workflows/build.yaml)

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 ENSURE_GARDENER_MOD         := $(shell go get github.com/gardener/gardener@$$(go list -m -f "{{.Version}}" github.com/gardener/gardener))
+ENSURE_GARDENER_TOOLS_MOD   := $(shell go mod download github.com/gardener/gardener/hack/tools >/dev/null)
 GARDENER_HACK_DIR           := $(shell go list -m -f "{{.Dir}}" github.com/gardener/gardener)/hack
 REGISTRY                    := ghcr.io
 IMAGE_PREFIX                := $(REGISTRY)/metal-stack
@@ -30,8 +31,8 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v2.10.1
-GO_VERSION := 1.26
+GOLANGCI_LINT_VERSION := v2.15.0
+GO_VERSION := 1.27
 
 ifeq ($(CI),true)
   DOCKER_TTY_ARG=""
@@ -45,6 +46,17 @@ export GO111MODULE := on
 
 TOOLS_DIR := $(HACK_DIR)/tools
 include $(GARDENER_HACK_DIR)/tools.mk
+
+# golangci-lint resolves imported packages from export data produced by the Go toolchain used to build this
+# repository. Go 1.27 emits a newer export data format (version 5) than the version pinned in the gardener
+# hack/tools module (see https://github.com/golangci/golangci-lint/issues/6884), which makes golangci-lint fail
+# with "export data version 5 is greater than maximum supported version 4". The version from tools.mk does not
+# honor GOLANGCI_LINT_VERSION, therefore override the rule to install exactly the version requested here.
+# Use the same version file as tools.mk, otherwise both markers (whose recipes delete each other) keep
+# invalidating the binary, triggering a reinstall on every invocation.
+$(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION)-$(LOGCHECK_VERSION))
+	@mkdir -p $(TOOLS_BIN_DIR)
+	GOBIN=$(abspath $(TOOLS_BIN_DIR)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 
 .PHONY: build
 build:
@@ -62,7 +74,7 @@ clean:
 	@bash $(GARDENER_HACK_DIR)/clean.sh ./cmd/... ./pkg/...
 
 .PHONY: install
-install: tidy $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
+install: tidy $(CONTROLLER_GEN) $(HELM) $(MOCKGEN)
 	@LD_FLAGS="-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(VERSION)" \
 	bash $(GARDENER_HACK_DIR)/install.sh ./...
 
@@ -72,8 +84,8 @@ tidy:
 	@mkdir -p $(REPO_ROOT)/.ci/hack && cp $(GARDENER_HACK_DIR)/.ci/* $(REPO_ROOT)/.ci/hack/ && chmod +xw $(REPO_ROOT)/.ci/hack/*
 
 .PHONY: generate
-generate: $(VGOPATH) $(HELM) $(YQ)
-	@REPO_ROOT=$(REPO_ROOT) VGOPATH=$(VGOPATH) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
+generate: $(HELM) $(YQ)
+	@REPO_ROOT=$(REPO_ROOT) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
 
 .PHONE: generate-in-docker
 generate-in-docker: tidy $(HELM) $(YQ)
@@ -84,7 +96,7 @@ generate-in-docker: tidy $(HELM) $(YQ)
 
 .PHONY: check-generate
 check-generate:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-generate.sh $(REPO_ROOT)
+	@bash $(GARDENER_HACK_DIR)/check-generate.sh $(REPO_ROOT)
 
 .PHONY: check
 check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)

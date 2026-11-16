@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/flatcar/container-linux-config-transpiler/config/types"
+	extensionsv1alpha1helper "github.com/gardener/gardener/pkg/api/extensions/v1alpha1/helper"
 	extensionsv1alpha1 "github.com/gardener/gardener/pkg/apis/extensions/v1alpha1"
-	"github.com/gardener/gardener/pkg/apis/extensions/v1alpha1/helper"
 	"github.com/go-logr/logr"
 	"k8s.io/utils/ptr"
 )
@@ -80,7 +80,7 @@ func ignitionFromOperatingSystemConfig(osc *extensionsv1alpha1.OperatingSystemCo
 		}
 
 		if f.Content.Inline != nil {
-			inline, err := helper.Decode(f.Content.Inline.Encoding, []byte(f.Content.Inline.Data))
+			inline, err := extensionsv1alpha1helper.Decode(f.Content.Inline.Encoding, []byte(f.Content.Inline.Data))
 			if err != nil {
 				return types.Config{}, fmt.Errorf("unable to decode content from osc: %w", err)
 			}

@@ -31,7 +31,7 @@ VERIFY                      := true
 LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
-GOLANGCI_LINT_VERSION := v2.10.1
+GOLANGCI_LINT_VERSION := v2.15.0
 GO_VERSION := 1.27
 
 ifeq ($(CI),true)

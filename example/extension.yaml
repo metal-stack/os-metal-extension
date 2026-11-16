@@ -1,0 +1,25 @@
+apiVersion: operator.gardener.cloud/v1alpha1
+kind: Extension
+metadata:
+  name: os-metal
+spec:
+  deployment:
+    extension:
+      helm:
+        ociRepository:
+          ref: ghcr.io/metal-stack/charts/os-metal-extension:latest
+      policy: Always
+      values:
+        image:
+          repository: ghcr.io/metal-stack/os-metal-extension
+          tag: latest
+  resources:
+  - kind: OperatingSystemConfig
+    primary: true
+    type: ubuntu
+  - kind: OperatingSystemConfig
+    primary: true
+    type: debian
+  - kind: OperatingSystemConfig
+    primary: true
+    type: nvidia

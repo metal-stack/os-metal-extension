@@ -24,3 +24,5 @@ spec:
     type: ubuntu
   - kind: OperatingSystemConfig
     type: debian
+  - kind: OperatingSystemConfig
+    type: nvidia

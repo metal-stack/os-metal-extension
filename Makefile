@@ -31,7 +31,7 @@ LEADER_ELECTION             := false
 IGNORE_OPERATION_ANNOTATION := false
 
 GOLANGCI_LINT_VERSION := v2.10.1
-GO_VERSION := 1.26
+GO_VERSION := 1.27
 
 ifeq ($(CI),true)
   DOCKER_TTY_ARG=""
@@ -62,7 +62,7 @@ clean:
 	@bash $(GARDENER_HACK_DIR)/clean.sh ./cmd/... ./pkg/...
 
 .PHONY: install
-install: tidy $(CONTROLLER_GEN) $(GEN_CRD_API_REFERENCE_DOCS) $(HELM) $(MOCKGEN)
+install: tidy $(CONTROLLER_GEN) $(HELM) $(MOCKGEN)
 	@LD_FLAGS="-w -X github.com/gardener/$(EXTENSION_PREFIX)-$(NAME)/pkg/version.Version=$(VERSION)" \
 	bash $(GARDENER_HACK_DIR)/install.sh ./...
 
@@ -72,8 +72,8 @@ tidy:
 	@mkdir -p $(REPO_ROOT)/.ci/hack && cp $(GARDENER_HACK_DIR)/.ci/* $(REPO_ROOT)/.ci/hack/ && chmod +xw $(REPO_ROOT)/.ci/hack/*
 
 .PHONY: generate
-generate: $(VGOPATH) $(HELM) $(YQ)
-	@REPO_ROOT=$(REPO_ROOT) VGOPATH=$(VGOPATH) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
+generate: $(HELM) $(YQ)
+	@REPO_ROOT=$(REPO_ROOT) GARDENER_HACK_DIR=$(GARDENER_HACK_DIR) bash $(GARDENER_HACK_DIR)/generate-sequential.sh ./charts/... ./cmd/... ./pkg/...
 
 .PHONE: generate-in-docker
 generate-in-docker: tidy $(HELM) $(YQ)
@@ -84,7 +84,7 @@ generate-in-docker: tidy $(HELM) $(YQ)
 
 .PHONY: check-generate
 check-generate:
-	@$(REPO_ROOT)/vendor/github.com/gardener/gardener/hack/check-generate.sh $(REPO_ROOT)
+	@bash $(GARDENER_HACK_DIR)/check-generate.sh $(REPO_ROOT)
 
 .PHONY: check
 check: $(GOIMPORTS) $(GOLANGCI_LINT) $(HELM)

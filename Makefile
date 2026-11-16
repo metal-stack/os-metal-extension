@@ -47,6 +47,17 @@ export GO111MODULE := on
 TOOLS_DIR := $(HACK_DIR)/tools
 include $(GARDENER_HACK_DIR)/tools.mk
 
+# golangci-lint resolves imported packages from export data produced by the Go toolchain used to build this
+# repository. Go 1.27 emits a newer export data format (version 5) than the version pinned in the gardener
+# hack/tools module (see https://github.com/golangci/golangci-lint/issues/6884), which makes golangci-lint fail
+# with "export data version 5 is greater than maximum supported version 4". The version from tools.mk does not
+# honor GOLANGCI_LINT_VERSION, therefore override the rule to install exactly the version requested here.
+# Use the same version file as tools.mk, otherwise both markers (whose recipes delete each other) keep
+# invalidating the binary, triggering a reinstall on every invocation.
+$(GOLANGCI_LINT): $(call tool_version_file,$(GOLANGCI_LINT),$(GOLANGCI_LINT_VERSION)-$(LOGCHECK_VERSION))
+	@mkdir -p $(TOOLS_BIN_DIR)
+	GOBIN=$(abspath $(TOOLS_BIN_DIR)) CGO_ENABLED=1 go install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
+
 .PHONY: build
 build:
 	CGO_ENABLED=0 go build -ldflags $(LD_FLAGS) -trimpath -tags netgo -o os-metal cmd/main.go
